@@ -94,6 +94,8 @@ def _render_network_architecture_settings(storage_type):
 def _configure_network(network_type, default_cidr, default_vlan, need_gateway=True, need_dns=True):
     """Configure a specific network (management, migration, VM, or cluster)."""
     network_config = {}
+    gateway = ""
+    dns = ""
     
     col1, col2 = st.columns(2)
     
@@ -121,9 +123,6 @@ def _configure_network(network_type, default_cidr, default_vlan, need_gateway=Tr
     # Add gateway and DNS if needed
     if need_gateway or need_dns:
         col1, col2 = st.columns(2)
-        
-        gateway = ""
-        dns = ""
         
         if need_gateway:
             with col1:
@@ -183,75 +182,6 @@ def _configure_migration_network(default_cidr="192.168.2.0/24", default_vlan=10)
     migration_network["ipsec"] = ipsec_enabled
     
     return migration_network, ipsec_enabled
-
-def validate_nic_speed_requirements(network_adapters, is_s2d=False):
-    """
-    Validate that NIC speed meets modern requirements.
-    
-    Args:
-        network_adapters: List of configured network adapters
-        is_s2d: Whether Storage Spaces Direct is used
-        
-    Returns:
-        dict: Validation results containing status, errors, warnings, and recommendations
-    """
-    result = {
-        "status": True,
-        "errors": [],
-        "warnings": [],
-        "recommendations": []
-    }
-    
-    # Collect NIC speeds by server and network type
-    server_nics = {}
-    for adapter in network_adapters:
-        server = adapter["server"]
-        network_type = adapter["network_type"]
-        speed = adapter["speed"]
-        
-        if server not in server_nics:
-            server_nics[server] = {}
-        
-        if network_type not in server_nics[server]:
-            server_nics[server][network_type] = []
-        
-        server_nics[server][network_type].append(speed)
-    
-    # Validate each server's NIC configuration
-    for server, nic_config in server_nics.items():
-        # Check for minimum 10 Gbps NICs
-        has_slow_nics = False
-        for network_type, speeds in nic_config.items():
-            for speed in speeds:
-                if "1 Gbps" in speed:
-                    has_slow_nics = True
-                    result["warnings"].append(f"Server {server} has a 1 Gbps NIC for {network_type}. 10 Gbps is the recommended minimum.")
-        
-        # Check for minimum 2 NICs per network type (redundancy)
-        for network_type, speeds in nic_config.items():
-            if len(speeds) < 2:
-                result["warnings"].append(f"Server {server} has only {len(speeds)} NIC(s) for {network_type}. At least 2 NICs are recommended for redundancy.")
-                
-        # Check for S2D specific requirements (25 Gbps NICs for storage)
-        if is_s2d:
-            if "Live Migration" in nic_config:
-                has_25gbps = False
-                for speed in nic_config["Live Migration"]:
-                    if "25 Gbps" in speed or "40 Gbps" in speed:
-                        has_25gbps = True
-                
-                if not has_25gbps:
-                    result["warnings"].append(f"Server {server} should have at least one 25 Gbps or faster NIC for Live Migration with S2D.")
-                    result["recommendations"].append(f"For S2D deployments, configure at least 2x 25 Gbps NICs for Live Migration on server {server}.")
-    
-    # General recommendations based on overall configuration
-    if is_s2d:
-        result["recommendations"].append("For Storage Spaces Direct (S2D), it's recommended to have at least 2x2 25 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
-    else:
-        result["recommendations"].append("For standard deployments, it's recommended to have at least 2x2 10 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
-    
-    return result
-
 
 def _configure_network_adapters(server_names, storage_type):
     """Configure network adapters for each server."""
@@ -457,6 +387,93 @@ def _display_validation_results(validation_results):
         for recommendation in validation_results["recommendations"]:
             st.info(recommendation)
 
+def _display_network_best_practices():
+    """Display network best practices."""
+    st.header("Network Best Practices")
+    
+    best_practices = [
+        "Use redundant NICs for all network types",
+        "Leverage NIC teaming for fault tolerance",
+        "Separate management, VM, and live migration traffic",
+        "Use VLANs to isolate different network traffic",
+        "Enable Quality of Service (QoS) for live migration and VM traffic",
+        "Use at least 10 Gbps NICs for all networks",
+        "Consider using 25 Gbps or faster NICs for storage traffic in S2D deployments",
+        "Configure jumbo frames (MTU 9000) for storage and live migration networks",
+        "Document your network topology and IP address assignments"
+    ]
+    
+    for practice in best_practices:
+        st.markdown(f"- {practice}")
+
+def validate_nic_speed_requirements(network_adapters, is_s2d=False):
+    """
+    Validate that NIC speed meets modern requirements.
+    
+    Args:
+        network_adapters: List of configured network adapters
+        is_s2d: Whether Storage Spaces Direct is used
+        
+    Returns:
+        dict: Validation results containing status, errors, warnings, and recommendations
+    """
+    result = {
+        "status": True,
+        "errors": [],
+        "warnings": [],
+        "recommendations": []
+    }
+    
+    # Collect NIC speeds by server and network type
+    server_nics = {}
+    for adapter in network_adapters:
+        server = adapter["server"]
+        network_type = adapter["network_type"]
+        speed = adapter["speed"]
+        
+        if server not in server_nics:
+            server_nics[server] = {}
+        
+        if network_type not in server_nics[server]:
+            server_nics[server][network_type] = []
+        
+        server_nics[server][network_type].append(speed)
+    
+    # Validate each server's NIC configuration
+    for server, nic_config in server_nics.items():
+        # Check for minimum 10 Gbps NICs
+        has_slow_nics = False
+        for network_type, speeds in nic_config.items():
+            for speed in speeds:
+                if "1 Gbps" in speed:
+                    has_slow_nics = True
+                    result["warnings"].append(f"Server {server} has a 1 Gbps NIC for {network_type}. 10 Gbps is the recommended minimum.")
+        
+        # Check for minimum 2 NICs per network type (redundancy)
+        for network_type, speeds in nic_config.items():
+            if len(speeds) < 2:
+                result["warnings"].append(f"Server {server} has only {len(speeds)} NIC(s) for {network_type}. At least 2 NICs are recommended for redundancy.")
+                
+        # Check for S2D specific requirements (25 Gbps NICs for storage)
+        if is_s2d:
+            if "Live Migration" in nic_config:
+                has_25gbps = False
+                for speed in nic_config["Live Migration"]:
+                    if "25 Gbps" in speed or "40 Gbps" in speed:
+                        has_25gbps = True
+                
+                if not has_25gbps:
+                    result["warnings"].append(f"Server {server} should have at least one 25 Gbps or faster NIC for Live Migration with S2D.")
+                    result["recommendations"].append(f"For S2D deployments, configure at least 2x 25 Gbps NICs for Live Migration on server {server}.")
+    
+    # General recommendations based on overall configuration
+    if is_s2d:
+        result["recommendations"].append("For Storage Spaces Direct (S2D), it's recommended to have at least 2x2 25 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
+    else:
+        result["recommendations"].append("For standard deployments, it's recommended to have at least 2x2 10 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
+    
+    return result
+
 def render_network_configuration():
     """Render the network configuration page."""
     st.title("Network Configuration")
@@ -484,394 +501,50 @@ def render_network_configuration():
     # Render network architecture settings and get the selected options
     dedicated_nics, separate_networks, is_s2d = _render_network_architecture_settings(storage_type)
     
-    # Management Network Configuration
+    # Network configuration - using modular functions for each network type
+    
+    # Management Network
     st.subheader("Management Network")
+    management_network = _configure_network("Management", "192.168.1.0/24", 0, need_gateway=True, need_dns=True)
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        mgmt_network_cidr = st.text_input(
-            "Management Network CIDR",
-            value="192.168.1.0/24",
-            help="Enter the management network CIDR (e.g., 192.168.1.0/24)"
-        )
-        
-        # Validate CIDR
-        is_valid_mgmt_cidr, mgmt_cidr_msg = validate_cidr(mgmt_network_cidr)
-        if not is_valid_mgmt_cidr:
-            st.error(f"Invalid CIDR format: {mgmt_cidr_msg}")
-    
-    with col2:
-        mgmt_network_vlan = st.number_input(
-            "Management Network VLAN ID",
-            min_value=0,
-            max_value=4095,
-            value=0,
-            help="Enter the VLAN ID for the management network (0 for untagged)"
-        )
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        mgmt_network_gateway = st.text_input(
-            "Management Network Gateway",
-            value="192.168.1.1",
-            help="Enter the gateway IP for the management network"
-        )
-        
-        # Validate gateway IP
-        is_valid_mgmt_gw, mgmt_gw_msg = validate_ip_address(mgmt_network_gateway)
-        if not is_valid_mgmt_gw:
-            st.error(f"Invalid gateway IP: {mgmt_gw_msg}")
-    
-    with col2:
-        mgmt_network_dns = st.text_input(
-            "Management Network DNS",
-            value="192.168.1.10",
-            help="Enter the DNS server IP for the management network"
-        )
-        
-        # Validate DNS IP
-        is_valid_mgmt_dns, mgmt_dns_msg = validate_ip_address(mgmt_network_dns)
-        if not is_valid_mgmt_dns:
-            st.error(f"Invalid DNS IP: {mgmt_dns_msg}")
-    
-    # Create management network configuration
-    management_network = {
-        "cidr": mgmt_network_cidr,
-        "vlan": mgmt_network_vlan,
-        "gateway": mgmt_network_gateway,
-        "dns": mgmt_network_dns,
-        "ip_range": str(ipaddress.IPv4Network(mgmt_network_cidr, strict=False)) if is_valid_mgmt_cidr else "",
-        "subnet": str(ipaddress.IPv4Network(mgmt_network_cidr, strict=False).netmask) if is_valid_mgmt_cidr else ""
-    }
-    
-    # Live Migration Network
-    st.subheader("Live Migration Network")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        migration_network_cidr = st.text_input(
-            "Live Migration Network CIDR",
-            value="192.168.2.0/24",
-            help="Enter the live migration network CIDR (e.g., 192.168.2.0/24)"
-        )
-        
-        # Validate CIDR
-        is_valid_migration_cidr, migration_cidr_msg = validate_cidr(migration_network_cidr)
-        if not is_valid_migration_cidr:
-            st.error(f"Invalid CIDR format: {migration_cidr_msg}")
-    
-    with col2:
-        migration_network_vlan = st.number_input(
-            "Live Migration Network VLAN ID",
-            min_value=0,
-            max_value=4095,
-            value=10,
-            help="Enter the VLAN ID for the live migration network"
-        )
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        ipsec_enabled = st.checkbox(
-            "Enable IPsec for Live Migration",
-            value=False,
-            help="Recommended: Encrypt live migration traffic for enhanced security"
-        )
-    
-    # Create migration network configuration
-    migration_network = {
-        "cidr": migration_network_cidr,
-        "vlan": migration_network_vlan,
-        "gateway": "",  # Live migration network typically doesn't need a gateway
-        "ipsec": ipsec_enabled,
-        "ip_range": str(ipaddress.IPv4Network(migration_network_cidr, strict=False)) if is_valid_migration_cidr else "",
-        "subnet": str(ipaddress.IPv4Network(migration_network_cidr, strict=False).netmask) if is_valid_migration_cidr else ""
-    }
+    # Live Migration Network - using specific configuration function
+    migration_network, ipsec_enabled = _configure_migration_network("192.168.2.0/24", 10)
     
     # VM Network
     st.subheader("VM Network")
+    vm_network = _configure_network("VM", "192.168.3.0/24", 20, need_gateway=True, need_dns=True)
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        vm_network_cidr = st.text_input(
-            "VM Network CIDR",
-            value="192.168.3.0/24",
-            help="Enter the VM network CIDR (e.g., 192.168.3.0/24)"
-        )
-        
-        # Validate CIDR
-        is_valid_vm_cidr, vm_cidr_msg = validate_cidr(vm_network_cidr)
-        if not is_valid_vm_cidr:
-            st.error(f"Invalid CIDR format: {vm_cidr_msg}")
-    
-    with col2:
-        vm_network_vlan = st.number_input(
-            "VM Network VLAN ID",
-            min_value=0,
-            max_value=4095,
-            value=20,
-            help="Enter the VLAN ID for the VM network"
-        )
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        vm_network_gateway = st.text_input(
-            "VM Network Gateway",
-            value="192.168.3.1",
-            help="Enter the gateway IP for the VM network"
-        )
-        
-        # Validate gateway IP
-        is_valid_vm_gw, vm_gw_msg = validate_ip_address(vm_network_gateway)
-        if not is_valid_vm_gw:
-            st.error(f"Invalid gateway IP: {vm_gw_msg}")
-    
-    with col2:
-        vm_network_dns = st.text_input(
-            "VM Network DNS",
-            value="192.168.3.10",
-            help="Enter the DNS server IP for the VM network"
-        )
-        
-        # Validate DNS IP
-        is_valid_vm_dns, vm_dns_msg = validate_ip_address(vm_network_dns)
-        if not is_valid_vm_dns:
-            st.error(f"Invalid DNS IP: {vm_dns_msg}")
-    
-    # Create VM network configuration
-    vm_network = {
-        "cidr": vm_network_cidr,
-        "vlan": vm_network_vlan,
-        "gateway": vm_network_gateway,
-        "dns": vm_network_dns,
-        "ip_range": str(ipaddress.IPv4Network(vm_network_cidr, strict=False)) if is_valid_vm_cidr else "",
-        "subnet": str(ipaddress.IPv4Network(vm_network_cidr, strict=False).netmask) if is_valid_vm_cidr else ""
-    }
-    
-    # Cluster Network (heartbeat)
+    # Cluster Network
     st.subheader("Cluster Network (Heartbeat)")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        cluster_network_cidr = st.text_input(
-            "Cluster Network CIDR",
-            value="192.168.4.0/24",
-            help="Enter the cluster heartbeat network CIDR (e.g., 192.168.4.0/24)"
-        )
-        
-        # Validate CIDR
-        is_valid_cluster_cidr, cluster_cidr_msg = validate_cidr(cluster_network_cidr)
-        if not is_valid_cluster_cidr:
-            st.error(f"Invalid CIDR format: {cluster_cidr_msg}")
-    
-    with col2:
-        cluster_network_vlan = st.number_input(
-            "Cluster Network VLAN ID",
-            min_value=0,
-            max_value=4095,
-            value=30,
-            help="Enter the VLAN ID for the cluster heartbeat network"
-        )
-    
-    # Create cluster network configuration
-    cluster_network = {
-        "cidr": cluster_network_cidr,
-        "vlan": cluster_network_vlan,
-        "gateway": "",  # Cluster heartbeat network typically doesn't need a gateway
-        "ip_range": str(ipaddress.IPv4Network(cluster_network_cidr, strict=False)) if is_valid_cluster_cidr else "",
-        "subnet": str(ipaddress.IPv4Network(cluster_network_cidr, strict=False).netmask) if is_valid_cluster_cidr else ""
-    }
+    cluster_network = _configure_network("Cluster", "192.168.4.0/24", 30, need_gateway=False, need_dns=False)
     
     # Network adapters configuration
     st.header("Network Adapter Configuration")
-    
-    # Allow configuration of network adapters for hosts
-    network_adapters = []
     
     # Get server names from hardware configuration
     server_names = []
     for server in st.session_state.configuration.get("hardware", {}).get("servers", []):
         server_names.append(server.get("name", f"Server{len(server_names)+1}"))
     
-    # Network adapter configuration for each server
-    for i, server_name in enumerate(server_names):
-        with st.expander(f"Network Adapters for {server_name}", expanded=(i==0)):
-            st.subheader(f"Network Adapters for {server_name}")
-            
-            # Get NIC count from hardware configuration if available
-            nic_count = 4  # Default
-            for server in st.session_state.configuration.get("hardware", {}).get("servers", []):
-                if server.get("name") == server_name:
-                    nic_count = server.get("nic_count", 4)
-                    break
-            
-            for j in range(nic_count):
-                col1, col2, col3 = st.columns([2, 2, 1])
-                
-                with col1:
-                    nic_name = st.text_input(
-                        f"NIC {j+1} Name",
-                        value=f"{'Management' if j==0 else 'LiveMigration' if j==1 else 'VM' if j==2 else 'Cluster'}{j+1}",
-                        key=f"nic_name_{i}_{j}"
-                    )
-                
-                with col2:
-                    nic_type = st.selectbox(
-                        f"NIC {j+1} Type",
-                        options=["Management", "Live Migration", "VM Network", "Cluster"],
-                        index=min(j, 3),
-                        key=f"nic_type_{i}_{j}"
-                    )
-                
-                with col3:
-                    # Updated speeds based on current standards
-                    # Default is now 10 Gbps minimum for all NICs
-                    nic_speed = st.selectbox(
-                        f"Speed",
-                        options=["10 Gbps", "25 Gbps", "40 Gbps"],
-                        index=0,  # Default 10 Gbps
-                        key=f"nic_speed_{i}_{j}"
-                    )
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    nic_teaming = st.checkbox(
-                        f"NIC Teaming",
-                        value=False,
-                        key=f"nic_teaming_{i}_{j}"
-                    )
-                
-                # Add adapter to configuration
-                network_adapters.append({
-                    "server": server_name,
-                    "name": nic_name,
-                    "network_type": nic_type,
-                    "speed": nic_speed,
-                    "teaming": nic_teaming
-                })
+    # Configure network adapters using modular function
+    network_adapters = _configure_network_adapters(server_names, storage_type)
     
-    # Logical Networks Configuration
-    st.header("VMM Logical Networks")
-    
-    # Create logical networks based on the physical networks configured
-    logical_networks = [
-        {
-            "name": "Management",
-            "description": "Network for management traffic",
-            "network_virtualization": False,
-            "cidr": management_network["cidr"],
-            "vlan": management_network["vlan"]
-        },
-        {
-            "name": "LiveMigration",
-            "description": "Network for live migration traffic",
-            "network_virtualization": False,
-            "cidr": migration_network["cidr"],
-            "vlan": migration_network["vlan"]
-        },
-        {
-            "name": "VM",
-            "description": "Network for virtual machine traffic",
-            "network_virtualization": True,
-            "cidr": vm_network["cidr"],
-            "vlan": vm_network["vlan"]
-        }
-    ]
-    
-    # Display logical networks
-    st.subheader("Logical Networks")
-    logical_networks_df = pd.DataFrame([
-        {
-            "Name": network["name"],
-            "Description": network["description"],
-            "CIDR": network["cidr"],
-            "VLAN": network["vlan"],
-            "Network Virtualization": "Enabled" if network["network_virtualization"] else "Disabled"
-        }
-        for network in logical_networks
-    ])
-    
-    st.table(logical_networks_df)
-    
-    # VM Networks
-    st.subheader("VM Networks")
-    
-    # Define VM networks
-    vm_networks = [
-        {
-            "name": "VM Network",
-            "description": "Primary VM network",
-            "logical_network": "VM",
-            "isolated": False
-        }
-    ]
-    
-    # Allow adding more VM networks
-    if st.checkbox("Add additional VM networks"):
-        num_additional_networks = st.number_input(
-            "Number of additional VM networks",
-            min_value=1,
-            max_value=5,
-            value=1
-        )
+    # Only show VMM logical networks configuration if deployment type includes SCVMM
+    if deployment_type == "scvmm":
+        # Configure logical networks for SCVMM
+        logical_networks = _configure_logical_networks(management_network, migration_network, vm_network)
         
-        for i in range(num_additional_networks):
-            with st.expander(f"Additional VM Network {i+1}"):
-                vm_net_name = st.text_input(
-                    "Network Name",
-                    value=f"VM Network {i+1}",
-                    key=f"vm_net_name_{i}"
-                )
-                
-                vm_net_desc = st.text_input(
-                    "Description",
-                    value=f"Additional VM network {i+1}",
-                    key=f"vm_net_desc_{i}"
-                )
-                
-                vm_net_logical = st.selectbox(
-                    "Logical Network",
-                    options=["VM"],
-                    index=0,
-                    key=f"vm_net_logical_{i}"
-                )
-                
-                vm_net_isolated = st.checkbox(
-                    "Network Isolation",
-                    value=True,
-                    key=f"vm_net_isolated_{i}",
-                    help="Use network virtualization to isolate this network"
-                )
-                
-                # Add to VM networks
-                vm_networks.append({
-                    "name": vm_net_name,
-                    "description": vm_net_desc,
-                    "logical_network": vm_net_logical,
-                    "isolated": vm_net_isolated
-                })
+        # Configure VM networks for SCVMM
+        vm_networks = _configure_vm_networks()
+    else:
+        # Set defaults for non-SCVMM deployments
+        logical_networks = []
+        vm_networks = []
     
-    # Display VM networks
-    vm_networks_df = pd.DataFrame([
-        {
-            "Name": network["name"],
-            "Description": network["description"],
-            "Logical Network": network["logical_network"],
-            "Isolation": "Enabled" if network["isolated"] else "Disabled"
-        }
-        for network in vm_networks
-    ])
+    # Network Validation
+    st.header("Network Validation")
     
-    st.table(vm_networks_df)
-    
-    # Network validation
-    st.header("Network Configuration Validation")
-    
-    # Compile configuration for validation
+    # Validate networks for conflicts
     network_config = {
         "management_network": management_network,
         "migration_network": migration_network,
@@ -885,75 +558,6 @@ def render_network_configuration():
     
     # Add storage type and custom speed requirements to validation
     network_config["is_s2d"] = is_s2d
-    
-    # Internal function to validate NIC speed requirements
-    def validate_nic_speed_requirements(network_adapters, is_s2d=False):
-        """
-        Validate that NIC speed meets modern requirements.
-        
-        Args:
-            network_adapters: List of configured network adapters
-            is_s2d: Whether Storage Spaces Direct is used
-            
-        Returns:
-            dict: Validation results containing status, errors, warnings, and recommendations
-        """
-        result = {
-            "status": True,
-            "errors": [],
-            "warnings": [],
-            "recommendations": []
-        }
-        
-        # Collect NIC speeds by server and network type
-        server_nics = {}
-        for adapter in network_adapters:
-            server = adapter["server"]
-            network_type = adapter["network_type"]
-            speed = adapter["speed"]
-            
-            if server not in server_nics:
-                server_nics[server] = {}
-            
-            if network_type not in server_nics[server]:
-                server_nics[server][network_type] = []
-            
-            server_nics[server][network_type].append(speed)
-        
-        # Validate each server's NIC configuration
-        for server, nic_config in server_nics.items():
-            # Check for minimum 10 Gbps NICs
-            has_slow_nics = False
-            for network_type, speeds in nic_config.items():
-                for speed in speeds:
-                    if "1 Gbps" in speed:
-                        has_slow_nics = True
-                        result["warnings"].append(f"Server {server} has a 1 Gbps NIC for {network_type}. 10 Gbps is the recommended minimum.")
-            
-            # Check for minimum 2 NICs per network type (redundancy)
-            for network_type, speeds in nic_config.items():
-                if len(speeds) < 2:
-                    result["warnings"].append(f"Server {server} has only {len(speeds)} NIC(s) for {network_type}. At least 2 NICs are recommended for redundancy.")
-                    
-            # Check for S2D specific requirements (25 Gbps NICs for storage)
-            if is_s2d:
-                if "Live Migration" in nic_config:
-                    has_25gbps = False
-                    for speed in nic_config["Live Migration"]:
-                        if "25 Gbps" in speed or "40 Gbps" in speed:
-                            has_25gbps = True
-                    
-                    if not has_25gbps:
-                        result["warnings"].append(f"Server {server} should have at least one 25 Gbps or faster NIC for Live Migration with S2D.")
-                        result["recommendations"].append(f"For S2D deployments, configure at least 2x 25 Gbps NICs for Live Migration on server {server}.")
-        
-        # General recommendations based on overall configuration
-        if is_s2d:
-            result["recommendations"].append("For Storage Spaces Direct (S2D), it's recommended to have at least 2x2 25 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
-        else:
-            result["recommendations"].append("For standard deployments, it's recommended to have at least 2x2 10 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
-        
-        return result
     
     # Validate NIC speed based on storage type
     nic_speed_validation = validate_nic_speed_requirements(network_adapters, is_s2d)
@@ -969,39 +573,15 @@ def render_network_configuration():
     validation_results["recommendations"].extend(nic_speed_validation["recommendations"])
     
     # Display validation results
-    if not validation_results["status"]:
-        st.error("Network configuration has errors that must be corrected.")
-        for error in validation_results["errors"]:
-            st.error(error)
+    _display_validation_results(validation_results)
     
-    for warning in validation_results["warnings"]:
-        st.warning(warning)
-    
-    for recommendation in validation_results["recommendations"]:
-        st.info(f"Recommendation: {recommendation}")
-    
-    # Network visualization
-    st.subheader("Network Architecture Visualization")
-    
-    # Create network visualization
+    # Network Visualization
+    st.header("Network Visualization")
     fig = create_network_visualization(network_config)
     st.plotly_chart(fig)
     
-    # Network best practices
-    st.header("Network Best Practices")
-    
-    best_practices = [
-        "Use separate networks for different traffic types (management, live migration, VM)",
-        "Configure NIC teaming for redundancy where appropriate",
-        "Enable IPsec on the live migration network for security",
-        "Use consistent network naming conventions across all hosts",
-        "Configure QoS policies only if needed based on observed performance",
-        "Ensure networks don't overlap with each other or existing networks",
-        "Use VLANs to segment different traffic types when using shared physical infrastructure"
-    ]
-    
-    for practice in best_practices:
-        st.markdown(f"- {practice}")
+    # Network Best Practices
+    _display_network_best_practices()
     
     # Navigation buttons
     st.markdown("---")
@@ -1018,4 +598,8 @@ def render_network_configuration():
             if not validation_results["status"]:
                 st.error("Please correct the network configuration errors before proceeding.")
             else:
-                confirm_network_configuration()
+                _save_network_configuration(
+                    management_network, migration_network, vm_network, cluster_network,
+                    dedicated_nics, ipsec_enabled, separate_networks, hyper_v_hosts,
+                    network_adapters, logical_networks, vm_networks
+                )
