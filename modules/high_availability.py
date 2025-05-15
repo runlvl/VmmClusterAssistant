@@ -134,61 +134,78 @@ def render_high_availability():
         col1, col2 = st.columns(2)
         
         with col1:
-            quorum_type = st.selectbox(
-                "Quorum Type",
-                options=["NodeMajority", "NodeAndDiskMajority", "NodeAndFileShareMajority", "NodeAndCloudWitness"],
+            quorum_witness_type = st.selectbox(
+                "Quorum/Witness Type",
+                options=["Node Majority", "Disk Witness", "File Share Witness", "Cloud Witness"],
                 index=1,
-                help="Select the quorum type for the cluster"
+                help="Select the quorum/witness type for the cluster"
             )
             
-            # Information about quorum types
-            with st.expander("About Quorum Types"):
+            # Map selection to internal values
+            quorum_type_map = {
+                "Node Majority": "NodeMajority",
+                "Disk Witness": "NodeAndDiskMajority",
+                "File Share Witness": "NodeAndFileShareMajority",
+                "Cloud Witness": "NodeAndCloudWitness"
+            }
+            quorum_type = quorum_type_map[quorum_witness_type]
+            
+            # Information about quorum/witness types
+            with st.expander("About Quorum/Witness Types"):
                 st.markdown("""
-                **NodeMajority**: Suitable for clusters with an odd number of nodes.
+                **Node Majority**: Suitable for clusters with an odd number of nodes.
                 
-                **NodeAndDiskMajority**: Recommended for most clusters with shared storage.
+                **Disk Witness**: Recommended for most clusters with shared storage. Uses a small shared disk as quorum witness.
                 
-                **NodeAndFileShareMajority**: For clusters without shared storage or odd node count.
+                **File Share Witness**: For clusters without shared storage or odd node count. Uses a file share as witness.
                 
-                **NodeAndCloudWitness**: Modern approach using Azure storage account as witness.
+                **Cloud Witness**: Modern approach using Azure storage account as witness. Ideal for geo-distributed clusters.
                 """)
         
         with col2:
-            # The witness type is determined by the quorum type
-            if quorum_type == "NodeMajority":
-                witness_type = "None"
+            # Show appropriate configuration fields based on witness type
+            witness_type_map = {
+                "NodeMajority": "None",
+                "NodeAndDiskMajority": "DiskWitness",
+                "NodeAndFileShareMajority": "FileShareWitness",
+                "NodeAndCloudWitness": "CloudWitness"
+            }
+            witness_type = witness_type_map.get(quorum_type, "DiskWitness")
+            
+            # Show appropriate witness configuration based on the selected type
+            if witness_type == "None":
                 st.info("Node Majority quorum does not require a witness.")
-            elif quorum_type == "NodeAndDiskMajority":
-                witness_type = "DiskWitness"
-                st.info("Disk Witness will be used (required for Node And Disk Majority).")
-            elif quorum_type == "NodeAndFileShareMajority":
-                witness_type = "FileShareWitness"
-                st.info("File Share Witness will be used (required for Node And File Share Majority).")
-            elif quorum_type == "NodeAndCloudWitness":
-                witness_type = "CloudWitness"
-                st.info("Cloud Witness will be used (required for Node And Cloud Witness).")
-            else:
-                witness_type = "DiskWitness"
-        
-        # Witness resource based on type
-        if witness_type == "DiskWitness":
-            witness_resource = st.text_input(
-                "Witness Disk Path",
-                value="\\\\?\\Volume{GUID}\\",
-                help="Enter the path to the quorum disk"
-            )
-        elif witness_type == "FileShareWitness":
-            witness_resource = st.text_input(
-                "Witness File Share Path",
-                value="\\\\server\\share",
-                help="Enter the UNC path to the file share witness"
-            )
-        else:  # CloudWitness
-            witness_resource = st.text_input(
-                "Azure Storage Account Name",
-                value="",
-                help="Enter the Azure storage account name for Cloud Witness"
-            )
+                witness_resource = "None"
+            elif witness_type == "DiskWitness":
+                st.info("Configure disk witness for the cluster")
+                witness_resource = st.text_input(
+                    "Witness Disk Path",
+                    value="Q:\\",
+                    help="Drive letter for the disk witness (small disk, 1GB minimum)"
+                )
+            elif witness_type == "FileShareWitness":
+                st.info("Configure file share witness for the cluster")
+                witness_resource = st.text_input(
+                    "Witness File Share Path",
+                    value="\\\\server\\share",
+                    help="UNC path to the file share witness"
+                )
+            else:  # CloudWitness
+                st.info("Configure Azure cloud witness for the cluster")
+                storage_account = st.text_input(
+                    "Azure Storage Account Name",
+                    value="",
+                    help="Name of the Azure storage account"
+                )
+                storage_key = st.text_input(
+                    "Azure Storage Key",
+                    type="password",
+                    help="Primary key for the Azure storage account"
+                )
+                witness_resource = storage_account
+                # Store both in session state
+                st.session_state.configuration["cloud_witness_account"] = storage_account
+                st.session_state.configuration["cloud_witness_key"] = storage_key
         
         # Optional SCVMM High Availability Configuration - only shown when SCVMM is selected as deployment type
         if deployment_type == "scvmm":

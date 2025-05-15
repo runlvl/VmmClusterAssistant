@@ -313,7 +313,8 @@ def render_backup_restore():
         "90 days": 90
     }
     
-    df["RetentionDays"] = df["Retention"].map(retention_days)
+    # Convert retention periods to days
+    df["RetentionDays"] = df["Retention"].apply(lambda x: retention_days.get(x, 0))
     
     fig2 = px.bar(df, x="Component", y="RetentionDays", 
                   title="Backup Retention Period (Days)",
