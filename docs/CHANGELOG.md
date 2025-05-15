@@ -5,7 +5,7 @@ Alle wesentlichen Änderungen am VMM Cluster Implementation Tool werden in diese
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
 und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2023-05-15
+## [1.0.0] - 2025-05-15
 
 ### Hinzugefügt
 - Initiale Veröffentlichung des VMM Cluster Implementation Tools

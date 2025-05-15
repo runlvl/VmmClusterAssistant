@@ -305,4 +305,4 @@ elif st.session_state.current_step == 11:
 
 # Footer
 st.markdown("---")
-st.caption("VMM Cluster Implementation Tool • © 2023 • v1.0.0")
+st.caption("VMM Cluster Implementation Tool • © 2025 • v1.0.0")

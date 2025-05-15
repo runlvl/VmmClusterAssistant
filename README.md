@@ -82,4 +82,4 @@ Bei Fragen oder Anregungen können Sie gerne ein Issue eröffnen oder eine E-Mai
 
 ---
 
-© 2023 - VMM Cluster Implementation Tool v1.0.0
+© 2025 - VMM Cluster Implementation Tool v1.0.0
