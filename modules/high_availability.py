@@ -109,14 +109,35 @@ def render_high_availability():
                 index=1,
                 help="Select the quorum type for the cluster"
             )
+            
+            # Information about quorum types
+            with st.expander("About Quorum Types"):
+                st.markdown("""
+                **NodeMajority**: Suitable for clusters with an odd number of nodes.
+                
+                **NodeAndDiskMajority**: Recommended for most clusters with shared storage.
+                
+                **NodeAndFileShareMajority**: For clusters without shared storage or odd node count.
+                
+                **NodeAndCloudWitness**: Modern approach using Azure storage account as witness.
+                """)
         
         with col2:
-            witness_type = st.selectbox(
-                "Witness Type",
-                options=["DiskWitness", "FileShareWitness", "CloudWitness"],
-                index=0,
-                help="Select the witness type for the cluster"
-            )
+            # The witness type is determined by the quorum type
+            if quorum_type == "NodeMajority":
+                witness_type = "None"
+                st.info("Node Majority quorum does not require a witness.")
+            elif quorum_type == "NodeAndDiskMajority":
+                witness_type = "DiskWitness"
+                st.info("Disk Witness will be used (required for Node And Disk Majority).")
+            elif quorum_type == "NodeAndFileShareMajority":
+                witness_type = "FileShareWitness"
+                st.info("File Share Witness will be used (required for Node And File Share Majority).")
+            elif quorum_type == "NodeAndCloudWitness":
+                witness_type = "CloudWitness"
+                st.info("Cloud Witness will be used (required for Node And Cloud Witness).")
+            else:
+                witness_type = "DiskWitness"
         
         # Witness resource based on type
         if witness_type == "DiskWitness":
@@ -138,63 +159,78 @@ def render_high_availability():
                 help="Enter the Azure storage account name for Cloud Witness"
             )
         
-        # VMM High Availability Configuration
-        st.header("VMM High Availability Configuration")
+        # Optional VMM High Availability Configuration
+        st.header("SCVMM (Optional)")
         
-        vmm_service_account = st.text_input(
-            "VMM Service Account",
-            value=default_vmm_service_account,
-            help="Enter the service account for VMM (format: DOMAIN\\username)"
+        use_vmm = st.checkbox(
+            "Deploy with System Center VMM",
+            value=False,
+            help="Include System Center Virtual Machine Manager in the deployment"
         )
         
-        validate_result = validate_service_account(vmm_service_account)
-        if not validate_result["status"]:
-            for error in validate_result["errors"]:
-                st.error(error)
-        for warning in validate_result["warnings"]:
-            st.warning(warning)
-        
-        dkm_enabled = st.checkbox(
-            "Enable Distributed Key Management (DKM)",
-            value=True,
-            help="Store encryption keys securely in Active Directory (required for HA)"
-        )
-        
-        if not dkm_enabled:
-            st.error("Distributed Key Management is required for high availability VMM deployments.")
-        
-        vmm_db_ha = st.checkbox(
-            "Configure SQL Server for High Availability",
-            value=True,
-            help="Deploy SQL Server in a highly available configuration"
-        )
-        
-        # VMM Library High Availability
-        st.header("VMM Library High Availability")
-        
-        library_ha = st.checkbox(
-            "Configure Highly Available VMM Library",
-            value=True,
-            help="Deploy VMM library on a highly available file share"
-        )
-        
-        if library_ha:
-            library_share = st.text_input(
-                "Library Share Path",
-                value="\\\\fileserver\\VMMLibrary",
-                help="Enter the UNC path to the library share"
+        if use_vmm:
+            vmm_service_account = st.text_input(
+                "VMM Service Account",
+                value=default_vmm_service_account,
+                help="Enter the service account for VMM (format: DOMAIN\\username)"
             )
+            
+            validate_result = validate_service_account(vmm_service_account)
+            if not validate_result["status"]:
+                for error in validate_result["errors"]:
+                    st.error(error)
+            for warning in validate_result["warnings"]:
+                st.warning(warning)
+            
+            dkm_enabled = st.checkbox(
+                "Enable Distributed Key Management (DKM)",
+                value=True,
+                help="Store encryption keys securely in Active Directory (required for HA)"
+            )
+            
+            if not dkm_enabled:
+                st.error("Distributed Key Management is required for high availability VMM deployments.")
+            
+            vmm_db_ha = st.checkbox(
+                "Configure SQL Server for High Availability",
+                value=True,
+                help="Deploy SQL Server in a highly available configuration"
+            )
+            
+            # VMM Library High Availability
+            st.header("VMM Library")
+            
+            library_ha = st.checkbox(
+                "Configure Highly Available VMM Library",
+                value=True,
+                help="Deploy VMM library on a highly available file share"
+            )
+            
+            if library_ha:
+                library_share = st.text_input(
+                    "Library Share Path",
+                    value="\\\\fileserver\\VMMLibrary",
+                    help="Enter the UNC path to the library share"
+                )
+            else:
+                library_share = ""
+                st.warning("A highly available VMM library is recommended for production environments.")
         else:
+            # Default values for non-VMM deployment
+            vmm_service_account = ""
+            dkm_enabled = False
+            vmm_db_ha = False
+            library_ha = False
             library_share = ""
-            st.warning("A highly available VMM library is recommended for production environments.")
     else:
         # Default values for non-HA deployment
-        cluster_name = "VMM-Cluster"
+        cluster_name = "HYPERV-Cluster"
         cluster_ip = "192.168.1.200"
         quorum_type = "NodeAndDiskMajority"
         witness_type = "DiskWitness"
         witness_resource = "\\\\?\\Volume{GUID}\\"
-        vmm_service_account = default_vmm_service_account
+        use_vmm = False
+        vmm_service_account = ""
         dkm_enabled = False
         vmm_db_ha = False
         library_ha = False
@@ -213,10 +249,11 @@ def render_high_availability():
             "witness_type": witness_type,
             "witness_resource": witness_resource if ha_enabled else ""
         },
-        "vmm_service_account": vmm_service_account,
-        "library_ha": library_ha,
-        "dkm_enabled": dkm_enabled,
-        "vmm_db_ha": vmm_db_ha
+        "use_vmm": use_vmm,
+        "vmm_service_account": vmm_service_account if use_vmm else "",
+        "library_ha": library_ha if use_vmm else False,
+        "dkm_enabled": dkm_enabled if use_vmm else False,
+        "vmm_db_ha": vmm_db_ha if use_vmm else False
     }
     
     # Validate HA configuration
