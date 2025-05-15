@@ -260,64 +260,15 @@ def render_storage_configuration():
     # CSV Volumes Configuration
     st.header("Cluster Shared Volumes (CSV)")
     
-    # Allow configuration of CSV volumes
+    # Create CSV volumes based on the number specified
     csv_volumes = []
     
-    # Initial volume
-    with st.expander("CSV Volume 1", expanded=True):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            csv1_size = st.number_input(
-                "Volume Size (GB)",
-                min_value=100,
-                value=1000,
-                help="Enter the size of the CSV volume in GB"
-            )
-        
-        with col2:
-            csv1_purpose = st.text_input(
-                "Purpose",
-                value="VM Storage",
-                help="Enter the purpose of this volume"
-            )
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            csv1_format = st.selectbox(
-                "File System",
-                options=["NTFS", "ReFS"],
-                index=0,
-                help="ReFS is recommended for new deployments"
-            )
-        
-        with col2:
-            csv1_redundancy = st.selectbox(
-                "Volume Redundancy",
-                options=["Same as Storage", "RAID 1", "RAID 5", "RAID 6", "RAID 10", "None"],
-                index=0
-            )
-        
-        # Add to CSV volumes
-        csv_volumes.append({
-            "size_gb": csv1_size,
-            "purpose": csv1_purpose,
-            "format": csv1_format,
-            "redundancy": csv1_redundancy if csv1_redundancy != "Same as Storage" else redundancy
-        })
+    # Define storage purpose options
+    purpose_options = ["VM Storage", "VM Templates", "ISO Library", "Backup Target", "General Storage"]
     
-    # Allow adding more volumes
-    additional_volumes = st.number_input(
-        "Additional CSV Volumes",
-        min_value=0,
-        max_value=10,
-        value=1,
-        help="Enter the number of additional CSV volumes to configure"
-    )
-    
-    for i in range(additional_volumes):
-        with st.expander(f"CSV Volume {i+2}"):
+    # Generate dynamic CSV volume configurations based on csv_count
+    for i in range(int(csv_count)):
+        with st.expander(f"CSV Volume {i+1}", expanded=(i == 0)):  # Only expand first volume by default
             col1, col2 = st.columns(2)
             
             with col1:
@@ -325,39 +276,46 @@ def render_storage_configuration():
                     "Volume Size (GB)",
                     min_value=100,
                     value=1000,
+                    help="Enter the size of the CSV volume in GB",
                     key=f"csv_size_{i}"
                 )
             
             with col2:
+                # Set different default purposes for volumes if available in the options list
+                default_purpose = purpose_options[i] if i < len(purpose_options) else f"VM Storage {i+1}"
+                    
                 csv_purpose = st.text_input(
                     "Purpose",
-                    value=f"VM Storage {i+2}",
+                    value=default_purpose,
+                    help="Enter the purpose of this volume",
                     key=f"csv_purpose_{i}"
                 )
             
+            # Volume specific settings
             col1, col2 = st.columns(2)
             
             with col1:
-                csv_format = st.selectbox(
-                    "File System",
-                    options=["NTFS", "ReFS"],
-                    index=0,
-                    key=f"csv_format_{i}"
-                )
+                st.info(f"Filesystem: {filesystem}")
             
+            # Set appropriate redundancy options based on storage type
             with col2:
+                if is_s2d:
+                    redundancy_options = ["Same as Storage", "2-way mirror", "3-way mirror", "Parity"]
+                else:
+                    redundancy_options = ["Same as Storage", "RAID 1", "RAID 5", "RAID 6", "RAID 10", "None"]
+                
                 csv_redundancy = st.selectbox(
                     "Volume Redundancy",
-                    options=["Same as Storage", "RAID 1", "RAID 5", "RAID 6", "RAID 10", "None"],
+                    options=redundancy_options,
                     index=0,
                     key=f"csv_redundancy_{i}"
                 )
             
-            # Add to CSV volumes
+            # Add to CSV volumes with the pre-selected filesystem
             csv_volumes.append({
                 "size_gb": csv_size,
                 "purpose": csv_purpose,
-                "format": csv_format,
+                "format": filesystem,
                 "redundancy": csv_redundancy if csv_redundancy != "Same as Storage" else redundancy
             })
     
