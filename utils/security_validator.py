@@ -43,7 +43,7 @@ def validate_security_configuration(config):
         results["recommendations"].append("Enable IPsec for Live Migration traffic")
     
     # Validate Distributed Key Management (DKM)
-    if "dkm" in config:
+    if "dkm" in config and isinstance(config["dkm"], dict):
         if "container_name" not in config["dkm"]:
             results["errors"].append("DKM container name must be specified")
             results["status"] = False

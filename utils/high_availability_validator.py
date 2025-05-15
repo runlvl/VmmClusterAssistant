@@ -2,6 +2,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import networkx as nx
 import re
+import math
 
 def validate_ha_configuration(config):
     """
@@ -210,7 +211,7 @@ def create_ha_visualization(config):
     
     for i in range(node_count):
         angle = i * angle_step
-        pos[f"Node{i+1}"] = [radius * 1.5 * nx.cos(angle), radius * nx.sin(angle)]
+        pos[f"Node{i+1}"] = [radius * 1.5 * math.cos(angle), radius * math.sin(angle)]
     
     # Position resources in the center
     pos["VMM Service"] = [0, 0]

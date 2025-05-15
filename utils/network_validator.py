@@ -144,7 +144,7 @@ def validate_network_configuration(config):
     # Check for network overlap
     networks = []
     for net_type, net_config in config.items():
-        if "cidr" in net_config:
+        if isinstance(net_config, dict) and "cidr" in net_config:
             try:
                 networks.append((net_type, ipaddress.ip_network(net_config["cidr"])))
             except ValueError:
