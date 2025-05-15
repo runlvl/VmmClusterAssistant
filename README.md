@@ -1,6 +1,8 @@
 # VMM Cluster Implementation Tool
 
-![VMM Cluster Tool](generated-icon.png)
+![Bechtle Logo](assets/bechtle_logo.png)
+
+## Bechtle Austria GmbH | Professional Services | Datacenter & Endpoint
 
 ## Übersicht
 
@@ -78,8 +80,8 @@ Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe die [LICENSE](LICENSE
 
 ## Kontakt
 
-Bei Fragen oder Anregungen können Sie gerne ein Issue eröffnen oder eine E-Mail an [kontakt@beispiel.com](mailto:kontakt@beispiel.com) senden.
+Bei Fragen oder Anregungen wenden Sie sich bitte an die Bechtle Austria GmbH - Professional Services | Datacenter & Endpoint.
 
 ---
 
-© 2025 - VMM Cluster Implementation Tool v1.0.0
+© 2025 Bechtle Austria GmbH - VMM Cluster Implementation Tool v1.0.0

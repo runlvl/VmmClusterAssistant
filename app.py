@@ -6,6 +6,7 @@ import networkx as nx
 import plotly.graph_objects as go
 from streamlit_option_menu import option_menu
 from pathlib import Path
+import base64
 
 # Add the project root to the path
 sys.path.append(str(Path(__file__).parent))
@@ -18,11 +19,35 @@ from data.requirements import get_hardware_requirements, get_software_requiremen
 
 # App configuration
 st.set_page_config(
-    page_title="VMM Cluster Implementation Tool",
+    page_title="VMM Cluster Implementation Tool - Bechtle Austria GmbH",
     page_icon="🖥️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Function to display the logo
+def get_base64_of_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+def set_header():
+    logo_path = "assets/bechtle_logo.png"
+    logo_base64 = get_base64_of_image(logo_path)
+    
+    # Set the logo and header text
+    header_html = f"""
+    <div style="display: flex; align-items: center; padding-bottom: 1rem;">
+        <img src="data:image/png;base64,{logo_base64}" style="height: 60px; margin-right: 10px;">
+        <div>
+            <h2 style="color: #1C5631; margin-bottom: 0;">Professional Services</h2>
+            <p style="color: #1C5631; margin-top: 0;">Datacenter & Endpoint</p>
+        </div>
+    </div>
+    """
+    st.markdown(header_html, unsafe_allow_html=True)
+
+# Call the header function
+set_header()
 
 # Initialize session state for progress tracking
 if 'current_step' not in st.session_state:
@@ -63,6 +88,7 @@ implementation_steps = [
 # Sidebar
 with st.sidebar:
     st.title("VMM Cluster Implementation")
+    st.caption("Bechtle Austria GmbH")
     
     # Display progress
     progress_percentage = len(st.session_state.completed_steps) / (len(implementation_steps) - 1) * 100 if len(implementation_steps) > 1 else 0
@@ -305,4 +331,4 @@ elif st.session_state.current_step == 11:
 
 # Footer
 st.markdown("---")
-st.caption("VMM Cluster Implementation Tool • © 2025 • v1.0.0")
+st.caption("VMM Cluster Implementation Tool • © 2025 Bechtle Austria GmbH • v1.0.0")
