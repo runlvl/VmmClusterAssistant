@@ -7,39 +7,77 @@ def render_roles_permissions():
     """Render the roles and permissions configuration page."""
     st.title("Roles & Permissions")
     
-    st.write("Configure roles and permissions for your VMM cluster. Proper RBAC implementation is essential for secure and efficient management.")
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Configure roles and permissions for your Hyper-V cluster. Proper RBAC implementation is essential for secure and efficient management.")
+    else:
+        st.write("Configure roles and permissions for your Hyper-V cluster with SCVMM. Proper RBAC implementation is essential for secure and efficient management.")
     
     # Initialize roles configuration in session state if not present
     if "configuration" not in st.session_state:
         st.session_state.configuration = {}
     
+    # Get deployment type
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
     if "roles" not in st.session_state.configuration:
-        st.session_state.configuration["roles"] = {
-            "standard_roles": [
-                {
-                    "name": "Administrator",
-                    "description": "Full control over VMM environment",
-                    "permissions": "All permissions"
-                },
-                {
-                    "name": "Fabric Administrator",
-                    "description": "Manages physical infrastructure",
-                    "permissions": "Host, network, and storage management"
-                },
-                {
-                    "name": "VM Administrator",
-                    "description": "Manages virtual machines",
-                    "permissions": "Create, modify, and delete VMs"
-                },
-                {
-                    "name": "Read-Only Administrator",
-                    "description": "Views but cannot modify environment",
-                    "permissions": "View-only access to all components"
-                }
-            ],
-            "custom_roles": [],
-            "service_accounts": []
-        }
+        # Default roles based on deployment type
+        if deployment_type == "hyperv":
+            st.session_state.configuration["roles"] = {
+                "standard_roles": [
+                    {
+                        "name": "Administrator",
+                        "description": "Full control over Hyper-V environment",
+                        "permissions": "All permissions"
+                    },
+                    {
+                        "name": "Hyper-V Administrator",
+                        "description": "Manages virtual infrastructure",
+                        "permissions": "Manage VMs, virtual switches"
+                    },
+                    {
+                        "name": "VM Administrator",
+                        "description": "Manages virtual machines",
+                        "permissions": "Create, modify, and delete VMs"
+                    },
+                    {
+                        "name": "Read-Only Administrator",
+                        "description": "Views but cannot modify environment",
+                        "permissions": "View-only access to all components"
+                    }
+                ],
+                "custom_roles": [],
+                "service_accounts": []
+            }
+        else:
+            st.session_state.configuration["roles"] = {
+                "standard_roles": [
+                    {
+                        "name": "Administrator",
+                        "description": "Full control over VMM environment",
+                        "permissions": "All permissions"
+                    },
+                    {
+                        "name": "Fabric Administrator",
+                        "description": "Manages physical infrastructure",
+                        "permissions": "Host, network, and storage management"
+                    },
+                    {
+                        "name": "VM Administrator",
+                        "description": "Manages virtual machines",
+                        "permissions": "Create, modify, and delete VMs"
+                    },
+                    {
+                        "name": "Read-Only Administrator",
+                        "description": "Views but cannot modify environment",
+                        "permissions": "View-only access to all components"
+                    }
+                ],
+                "custom_roles": [],
+                "service_accounts": []
+            }
     
     # Function to update session state when roles configuration is confirmed
     def confirm_roles_configuration():
