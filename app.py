@@ -47,6 +47,7 @@ if 'configuration' not in st.session_state:
 # Define implementation steps
 implementation_steps = [
     "Introduction",
+    "Installation",
     "Hardware Requirements",
     "Software Requirements",
     "Network Configuration",
@@ -73,7 +74,7 @@ with st.sidebar:
         "Implementation Steps",
         implementation_steps,
         icons=[
-            "info-circle", "cpu", "gear", "diagram-3", "hdd", 
+            "info-circle", "download", "cpu", "gear", "diagram-3", "hdd", 
             "shield-lock", "arrow-repeat", "archive", "people", 
             "graph-up", "file-earmark-text"
         ],
