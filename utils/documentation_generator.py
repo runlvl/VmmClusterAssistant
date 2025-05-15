@@ -43,16 +43,16 @@ def generate_implementation_documentation(config):
                 color: #333;
             }
             h1 {
-                color: #2c3e50;
-                border-bottom: 2px solid #3498db;
+                color: #1C5631; /* Bechtle Grün */
+                border-bottom: 2px solid #1C5631;
                 padding-bottom: 10px;
             }
             h2 {
-                color: #2980b9;
+                color: #1C5631; /* Bechtle Grün */
                 margin-top: 25px;
             }
             h3 {
-                color: #3498db;
+                color: #1C5631; /* Bechtle Grün */
             }
             table {
                 border-collapse: collapse;
@@ -64,7 +64,8 @@ def generate_implementation_documentation(config):
                 padding: 8px;
             }
             th {
-                background-color: #f2f2f2;
+                background-color: #1C5631; /* Bechtle Grün */
+                color: white;
                 text-align: left;
             }
             tr:nth-child(even) {
@@ -84,20 +85,23 @@ def generate_implementation_documentation(config):
                 padding: 10px;
                 border-radius: 5px;
                 margin-bottom: 15px;
+                border-left: 4px solid #ffc107;
             }
             .info {
-                background-color: #d1ecf1;
-                color: #0c5460;
+                background-color: #e8f4f8;
+                color: #1C5631; /* Bechtle Grün */
                 padding: 10px;
                 border-radius: 5px;
                 margin-bottom: 15px;
+                border-left: 4px solid #1C5631; /* Bechtle Grün */
             }
             .success {
-                background-color: #d4edda;
-                color: #155724;
+                background-color: #e6f3eb;
+                color: #1C5631; /* Bechtle Grün */
                 padding: 10px;
                 border-radius: 5px;
                 margin-bottom: 15px;
+                border-left: 4px solid #1C5631; /* Bechtle Grün */
             }
             .error {
                 background-color: #f8d7da;
@@ -105,6 +109,7 @@ def generate_implementation_documentation(config):
                 padding: 10px;
                 border-radius: 5px;
                 margin-bottom: 15px;
+                border-left: 4px solid #dc3545;
             }
             .footer {
                 margin-top: 40px;
