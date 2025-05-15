@@ -15,7 +15,13 @@ def render_network_configuration():
     """Render the network configuration page."""
     st.title("Network Configuration")
     
-    st.write("Configure the network settings for your VMM cluster. Proper network setup is crucial for cluster communication, VM traffic, and live migration.")
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Configure the network settings for your Hyper-V cluster. Proper network setup is crucial for cluster communication, VM traffic, and live migration.")
+    else:
+        st.write("Configure the network settings for your Hyper-V cluster with SCVMM. Proper network setup is crucial for cluster communication, VM traffic, SCVMM management, and live migration.")
     
     # Initialize network configuration in session state if not present
     if "configuration" not in st.session_state:

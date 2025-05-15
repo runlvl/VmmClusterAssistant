@@ -7,7 +7,13 @@ def render_monitoring():
     """Render the monitoring configuration page."""
     st.title("Monitoring")
     
-    st.write("Configure monitoring settings for your VMM cluster. Proper monitoring is essential for maintaining system health and performance.")
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Configure monitoring settings for your Hyper-V cluster. Proper monitoring is essential for maintaining system health and performance.")
+    else:
+        st.write("Configure monitoring settings for your Hyper-V cluster with SCVMM. Proper monitoring is essential for maintaining system health and performance.")
     
     # Initialize monitoring configuration in session state if not present
     if "configuration" not in st.session_state:

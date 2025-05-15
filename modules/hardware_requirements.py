@@ -7,10 +7,16 @@ def render_hardware_requirements():
     """Render the hardware requirements page."""
     st.title("Hardware Requirements")
     
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
     # Get hardware requirements data
     hw_requirements = get_hardware_requirements()
     
-    st.write("Before implementing a VMM cluster, ensure your hardware meets or exceeds the following requirements.")
+    if deployment_type == "hyperv":
+        st.write("Before implementing a Hyper-V cluster, ensure your hardware meets or exceeds the following requirements.")
+    else:
+        st.write("Before implementing a Hyper-V cluster with SCVMM, ensure your hardware meets or exceeds the following requirements.")
     
     # Function to update session state when requirements are confirmed
     def confirm_hardware_configuration():
