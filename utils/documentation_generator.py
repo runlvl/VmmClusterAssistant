@@ -17,6 +17,11 @@ def generate_implementation_documentation(config):
     Returns:
         HTML string with the formatted documentation
     """
+    # Get logo for branding
+    logo_path = "assets/bechtle_logo.png"
+    with open(logo_path, "rb") as image_file:
+        logo_base64 = base64.b64encode(image_file.read()).decode('utf-8')
+    
     # Create Jinja2 environment
     template_loader = jinja2.FileSystemLoader(searchpath="./")
     template_env = jinja2.Environment(loader=template_loader)
@@ -122,6 +127,17 @@ def generate_implementation_documentation(config):
         </style>
     </head>
     <body>
+        <div style="display: flex; align-items: flex-end; padding-bottom: 1rem; margin-top: 0.5rem;">
+            <div style="margin-right: 12px; line-height: 0;">
+                <img src="data:image/png;base64,{{ logo_base64 }}" style="height: 50px; display: block;">
+            </div>
+            <div style="display: inline-block; line-height: 1; padding-bottom: 4px;">
+                <div style="color: #1C5631; font-size: 22px; font-weight: 600; margin: 0; white-space: nowrap; padding-left: 5px;">
+                    <span style="font-size: 30px; font-weight: 700;">Professional Services</span> | Datacenter & Endpoint
+                </div>
+            </div>
+        </div>
+        
         <h1>VMM Cluster Implementation Documentation</h1>
         <p>
             <strong>Generated:</strong> {{ generation_date }}<br>
