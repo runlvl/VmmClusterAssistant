@@ -39,20 +39,22 @@ def set_header():
     <style>
         .header-container {{
             display: flex;
-            align-items: center;
+            align-items: flex-end; /* Align items to the bottom */
             padding-bottom: 1rem;
+            margin-top: 0.5rem;
         }}
         .logo-container {{
             margin-right: 12px;
+            line-height: 0; /* Remove any line-height spacing */
         }}
         .logo-image {{
             height: 50px;
+            display: block; /* Remove any inline spacing */
         }}
         .header-text {{
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 50px;
+            display: inline-block;
+            line-height: 1;
+            padding-bottom: 2px; /* Fine-tune the alignment to the baseline */
         }}
         .header-title {{
             color: #1C5631;
@@ -61,7 +63,6 @@ def set_header():
             margin: 0;
             white-space: nowrap;
             padding-left: 5px;
-            vertical-align: middle;
         }}
     </style>
     <div class="header-container">
