@@ -11,34 +11,37 @@ from utils.documentation_generator import (
     export_scripts_to_files
 )
 
-def render_documentation():
-    """Render the documentation generation page."""
-    st.title("Generate Implementation Documentation (Final Step)")
+# Helper functions for documentation generation
+
+def _initialize_project_info():
+    """Initialize project information in session state if not present."""
+    if "documentation_info" not in st.session_state:
+        deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+        default_project_name = "Hyper-V Cluster Implementation" if deployment_type == "hyperv" else "Hyper-V Cluster with SCVMM Implementation"
+        
+        st.session_state.documentation_info = {
+            "organization": "Example Organization",
+            "project_name": default_project_name,
+            "start_date": datetime.date.today(),
+            "implementation_duration": 7,
+            "implementation_notes": "",
+            "include_architecture": True,
+            "include_scripts": True
+        }
+
+def _render_project_information():
+    """Render project information input fields."""
+    st.header("Project Information")
     
     # Get deployment type from session state
     deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
-    
-    if deployment_type == "hyperv":
-        st.write("This is the final step of your Hyper-V cluster implementation. Generate comprehensive documentation and PowerShell scripts based on your configuration selections.")
-    else:
-        st.write("This is the final step of your Hyper-V cluster with SCVMM implementation. Generate comprehensive documentation and PowerShell scripts based on your configuration selections.")
-    
-    # Get configuration from session state
-    if "configuration" not in st.session_state:
-        st.error("Configuration is missing. Please complete the previous steps first.")
-        return
-    
-    config = st.session_state.configuration
-    
-    # Project information
-    st.header("Project Information")
     
     col1, col2 = st.columns(2)
     
     with col1:
         organization = st.text_input(
             "Organization Name",
-            value="Example Organization",
+            value=st.session_state.documentation_info.get("organization", "Example Organization"),
             help="Enter your organization name"
         )
     
@@ -48,15 +51,19 @@ def render_documentation():
         
         project_name = st.text_input(
             "Project Name",
-            value=default_project_name,
+            value=st.session_state.documentation_info.get("project_name", default_project_name),
             help="Enter the project name"
         )
     
-    # Add project info to configuration
-    config["organization"] = organization
-    config["project_name"] = project_name
+    # Update session state
+    st.session_state.documentation_info["organization"] = organization
+    st.session_state.documentation_info["project_name"] = project_name
     
-    # Implementation timeline
+    # Return updated values for use in configuration
+    return organization, project_name
+
+def _render_implementation_timeline():
+    """Render implementation timeline input fields and visualization."""
     st.header("Implementation Timeline")
     
     with st.expander("Implementation Timeline", expanded=False):
@@ -65,7 +72,7 @@ def render_documentation():
         with col1:
             start_date = st.date_input(
                 "Implementation Start Date",
-                value=datetime.date.today(),
+                value=st.session_state.documentation_info.get("start_date", datetime.date.today()),
                 help="Select the expected start date for the implementation"
             )
         
@@ -74,7 +81,7 @@ def render_documentation():
                 "Implementation Duration (days)",
                 min_value=1,
                 max_value=30,
-                value=7,
+                value=st.session_state.documentation_info.get("implementation_duration", 7),
                 help="Enter the expected implementation duration in days"
             )
         
@@ -111,22 +118,33 @@ def render_documentation():
         timeline_df = pd.DataFrame(timeline_data)
         st.table(timeline_df)
         
-        # Add timeline to configuration
-        config["implementation_timeline"] = timeline_data
-    
-    # Implementation notes
+        # Update session state
+        st.session_state.documentation_info["start_date"] = start_date
+        st.session_state.documentation_info["implementation_duration"] = implementation_duration
+        st.session_state.documentation_info["timeline_data"] = timeline_data
+        
+        # Return timeline data for use in configuration
+        return timeline_data
+
+def _render_implementation_notes():
+    """Render implementation notes input field."""
     st.header("Implementation Notes")
     
     implementation_notes = st.text_area(
         "Additional Notes",
-        value="",
+        value=st.session_state.documentation_info.get("implementation_notes", ""),
         height=100,
         help="Enter any additional implementation notes or special requirements"
     )
     
-    config["implementation_notes"] = implementation_notes
+    # Update session state
+    st.session_state.documentation_info["implementation_notes"] = implementation_notes
     
-    # Documentation Options
+    # Return notes for use in configuration
+    return implementation_notes
+
+def _render_documentation_options():
+    """Render documentation options input fields."""
     st.header("Documentation Options")
     
     col1, col2 = st.columns(2)
@@ -134,107 +152,131 @@ def render_documentation():
     with col1:
         include_architecture = st.checkbox(
             "Include Architecture Diagrams",
-            value=True,
+            value=st.session_state.documentation_info.get("include_architecture", True),
             help="Include network and storage architecture diagrams in the documentation"
         )
     
     with col2:
         include_scripts = st.checkbox(
             "Generate PowerShell Scripts",
-            value=True,
+            value=st.session_state.documentation_info.get("include_scripts", True),
             help="Generate PowerShell scripts for implementation tasks"
         )
     
-    # Generate Implementation Documentation and Scripts
-    st.header("Generate Implementation Documentation and PowerShell Scripts")
+    # Update session state
+    st.session_state.documentation_info["include_architecture"] = include_architecture
+    st.session_state.documentation_info["include_scripts"] = include_scripts
     
-    if st.button("Create VMM Implementation Documentation and PowerShell Scripts", key="generate_docs"):
-        with st.spinner("Generating Documentation and PowerShell Scripts..."):
-            # Generate HTML documentation
-            html_documentation = generate_implementation_documentation(config)
-            
-            # Generate PowerShell scripts if selected
-            if include_scripts:
-                scripts = generate_powershell_scripts(config)
-            else:
-                scripts = {}
-            
-            # Store in session state for download
-            if "documentation_generated" not in st.session_state:
-                st.session_state.documentation_generated = {}
-            
-            st.session_state.documentation_generated["html"] = html_documentation
-            st.session_state.documentation_generated["scripts"] = scripts
-            
-            st.success("VMM Implementation Documentation and PowerShell Scripts have been successfully created! Please use the download buttons below to download the files.")
+    # Return options for use in generation
+    return include_architecture, include_scripts
+
+def _generate_documentation_and_scripts(config, include_scripts=True):
+    """Generate documentation and scripts based on configuration."""
+    with st.spinner("Generating Documentation and PowerShell Scripts..."):
+        # Generate HTML documentation
+        html_documentation = generate_implementation_documentation(config)
+        
+        # Generate PowerShell scripts if selected
+        if include_scripts:
+            scripts = generate_powershell_scripts(config)
+        else:
+            scripts = {}
+        
+        # Store in session state for download
+        if "documentation_generated" not in st.session_state:
+            st.session_state.documentation_generated = {}
+        
+        st.session_state.documentation_generated["html"] = html_documentation
+        st.session_state.documentation_generated["scripts"] = scripts
+        
+        st.success("VMM Implementation Documentation and PowerShell Scripts have been successfully created! Please use the download buttons below to download the files.")
+        
+        # Return generated content
+        return html_documentation, scripts
+
+def _render_download_section(project_name):
+    """Render download buttons for documentation and scripts."""
+    if "documentation_generated" not in st.session_state:
+        return
     
-    # Download Documentation and Scripts
-    if "documentation_generated" in st.session_state:
-        st.header("Download VMM Implementation Files")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # HTML Documentation
-            if "html" in st.session_state.documentation_generated:
-                doc_filename = f"{project_name.replace(' ', '_')}_VMM_Implementation_Documentation.html"
-                
-                # Create download button for HTML
-                html_content = st.session_state.documentation_generated["html"]
-                st.download_button(
-                    label="Download Implementation Documentation (HTML)",
-                    data=html_content,
-                    file_name=doc_filename,
-                    mime="text/html",
-                    help="Detailed HTML documentation with all implementation steps and diagrams"
-                )
+    st.header("Download VMM Implementation Files")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # HTML Documentation
+        if "html" in st.session_state.documentation_generated:
+            doc_filename = f"{project_name.replace(' ', '_')}_VMM_Implementation_Documentation.html"
             
-            # PowerShell Scripts
-            if "scripts" in st.session_state.documentation_generated and include_scripts:
-                # Create a zip file of scripts
-                script_content = ""
-                for script_name, script_text in st.session_state.documentation_generated["scripts"].items():
-                    script_content += f"# {script_name}\n{script_text}\n\n"
-                
-                st.download_button(
-                    label="Download PowerShell Implementation Scripts",
-                    data=script_content,
-                    file_name=f"{project_name.replace(' ', '_')}_VMM_Implementation_Scripts.ps1",
-                    mime="text/plain",
-                    help="Executable PowerShell scripts for automated VMM implementation"
-                )
-        
-        with col2:
-            # Configuration JSON
-            config_json = json.dumps(config, indent=2)
+            # Create download button for HTML
+            html_content = st.session_state.documentation_generated["html"]
             st.download_button(
-                label="Export Configuration Data as JSON",
-                data=config_json,
-                file_name=f"{project_name.replace(' ', '_')}_VMM_Configuration.json",
-                mime="application/json",
-                help="Export the configuration to reuse it later"
+                label="Download Implementation Documentation (HTML)",
+                data=html_content,
+                file_name=doc_filename,
+                mime="text/html",
+                help="Detailed HTML documentation with all implementation steps and diagrams"
             )
-            
-            # Add an option to import configuration
-            st.file_uploader(
-                "Import Configuration Data", 
-                type=["json"], 
-                key="config_import",
-                help="Load a previously exported JSON configuration file"
-            )
-    
-    # Preview of generated documentation
-    if "documentation_generated" in st.session_state and "html" in st.session_state.documentation_generated:
-        st.header("Implementation Documentation Preview")
         
-        with st.expander("Show Documentation Preview", expanded=False):
-            try:
-                from streamlit.components.v1 import html
-                html(st.session_state.documentation_generated["html"], height=600, scrolling=True)
-            except:
-                st.warning("Preview could not be displayed. Please download the HTML file to view the complete documentation.")
+        # PowerShell Scripts
+        if "scripts" in st.session_state.documentation_generated and st.session_state.documentation_info.get("include_scripts", True):
+            # Create a combined script file
+            script_content = ""
+            for script_name, script_text in st.session_state.documentation_generated["scripts"].items():
+                script_content += f"# {script_name}\n{script_text}\n\n"
+            
+            st.download_button(
+                label="Download PowerShell Implementation Scripts",
+                data=script_content,
+                file_name=f"{project_name.replace(' ', '_')}_VMM_Implementation_Scripts.ps1",
+                mime="text/plain",
+                help="Executable PowerShell scripts for automated VMM implementation"
+            )
     
-    # Implementation Checklist
+    with col2:
+        # Configuration JSON
+        config_json = json.dumps(st.session_state.configuration, indent=2)
+        st.download_button(
+            label="Export Configuration Data as JSON",
+            data=config_json,
+            file_name=f"{project_name.replace(' ', '_')}_VMM_Configuration.json",
+            mime="application/json",
+            help="Export the configuration to reuse it later"
+        )
+        
+        # Add an option to import configuration
+        uploaded_file = st.file_uploader(
+            "Import Configuration Data", 
+            type=["json"], 
+            key="config_import",
+            help="Load a previously exported JSON configuration file"
+        )
+        
+        # Handle imported configuration
+        if uploaded_file is not None:
+            try:
+                imported_config = json.load(uploaded_file)
+                st.session_state.configuration = imported_config
+                st.success("Configuration imported successfully! You can now navigate through the tool to review and modify the imported settings.")
+            except Exception as e:
+                st.error(f"Error importing configuration: {str(e)}")
+
+def _render_documentation_preview():
+    """Render preview of the generated documentation."""
+    if "documentation_generated" not in st.session_state or "html" not in st.session_state.documentation_generated:
+        return
+    
+    st.header("Implementation Documentation Preview")
+    
+    with st.expander("Show Documentation Preview", expanded=False):
+        try:
+            from streamlit.components.v1 import html
+            html(st.session_state.documentation_generated["html"], height=600, scrolling=True)
+        except Exception as e:
+            st.warning(f"Preview could not be displayed: {str(e)}. Please download the HTML file to view the complete documentation.")
+
+def _render_implementation_checklist():
+    """Render implementation checklist with completion status."""
     st.header("Implementation Checklist")
     
     # Check which steps have been completed
@@ -276,18 +318,79 @@ def render_documentation():
     progress_percentage = len(completed_steps) / total_steps * 100
     st.progress(progress_percentage / 100)
     st.info(f"Implementation Progress: {progress_percentage:.1f}%")
+
+def render_documentation():
+    """Render the documentation generation page."""
+    st.title("Generate Implementation Documentation (Final Step)")
     
-    # These areas have already been implemented above
-    # in the columns "Export Configuration Data as JSON"
-    # and "Import Configuration Data"
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("This is the final step of your Hyper-V cluster implementation. Generate comprehensive documentation and PowerShell scripts based on your configuration selections.")
+    else:
+        st.write("This is the final step of your Hyper-V cluster with SCVMM implementation. Generate comprehensive documentation and PowerShell scripts based on your configuration selections.")
+    
+    # Get configuration from session state
+    if "configuration" not in st.session_state:
+        st.error("Configuration is missing. Please complete the previous steps first.")
+        return
+    
+    config = st.session_state.configuration
+    
+    # Initialize project information if needed
+    _initialize_project_info()
+    
+    # Render project information section
+    organization, project_name = _render_project_information()
+    
+    # Add project info to configuration
+    config["organization"] = organization
+    config["project_name"] = project_name
+    
+    # Render implementation timeline section
+    timeline_data = _render_implementation_timeline()
+    
+    # Add timeline to configuration
+    config["implementation_timeline"] = timeline_data
+    
+    # Render implementation notes section
+    implementation_notes = _render_implementation_notes()
+    
+    # Add notes to configuration
+    config["implementation_notes"] = implementation_notes
+    
+    # Render documentation options section
+    include_architecture, include_scripts = _render_documentation_options()
+    
+    # Generate Implementation Documentation and Scripts
+    st.header("Generate Implementation Documentation and PowerShell Scripts")
+    
+    if st.button("Create VMM Implementation Documentation and PowerShell Scripts", key="generate_docs"):
+        # Generate documentation and scripts
+        _generate_documentation_and_scripts(config, include_scripts)
+    
+    # Render download section
+    _render_download_section(project_name)
+    
+    # Render documentation preview
+    _render_documentation_preview()
+    
+    # Render implementation checklist
+    _render_implementation_checklist()
     
     # Navigation buttons
     st.markdown("---")
     col1, col2 = st.columns([1, 1])
     
+    # Previous button goes to the previous step, which depends on deployment type
+    prev_step_text = "Previous: High Availability" if deployment_type == "hyperv" else "Previous: Monitoring"
+    prev_step_key = "prev_ha" if deployment_type == "hyperv" else "prev_monitoring"
+    prev_step_num = 7 if deployment_type == "hyperv" else 10
+    
     with col1:
-        if st.button("Previous: Monitoring", key="prev_monitoring"):
-            st.session_state.current_step = 9
+        if st.button(prev_step_text, key=prev_step_key):
+            st.session_state.current_step = prev_step_num
             st.rerun()
     
     with col2:
