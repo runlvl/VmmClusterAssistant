@@ -1,0 +1,278 @@
+Umfassende Checkliste zur Implementierung eines VMM-Clusters
+Vor der Implementierung eines System Center Virtual Machine Manager (VMM) Clusters sind zahlreiche Aspekte zu berücksichtigen, von der Hardware-Auswahl bis zur Konfiguration hochverfügbarer Dienste. Die folgende Zusammenstellung bietet eine strukturierte Übersicht aller relevanten Punkte, die bei der Planung und Durchführung eines VMM Cluster-Projekts beachtet werden sollten. Diese Checkliste kann als Grundlage für ein KI-gestütztes Hilfstool dienen, das den Implementierungsprozess unterstützt und automatisiert.
+
+Hardware- und Software-Voraussetzungen
+Serveranforderungen
+Alle Clusterknoten müssen Windows Server 2019 oder Windows Server 2022 ausführen
+
+Server müssen einer Domäne hinzugefügt sein
+
+Computernamen dürfen nicht länger als 15 Zeichen sein
+
+Homogene Server-Hardware für alle Clusterknoten verwenden
+
+ARMv7-Plattformen erfordern spezielle Konfigurationen und haben eigene Herausforderungen bei der Virtualisierung
+
+Software und Dienste
+Windows ADK muss auf jedem Computer installiert sein (Bereitstellungstools und Windows-Vorinstallationsumgebung auswählen)
+
+Bei Verwendung von SQL Server-Datenebenenanwendungen müssen die entsprechenden Befehlszeilenprogramme auf dem VMM-Verwaltungsserver installiert werden
+
+VMM sollte nicht auf einer übergeordneten Partition des Hyper-V-Hosts installiert werden
+
+Multipath-E/A-Feature (MPIO) auf jedem Hyper-V-Host für den Zugriff auf gemeinsam genutzten Speicher installieren
+
+Failover-Clustering-Feature muss auf allen Servern installiert sein
+
+VMM und Failover-Cluster-Konfiguration
+Vorbereitung des Failover-Clusters
+Konfigurieren der Server-Manager-Rolle "Hinzufügen von Rollen und Funktionen"
+
+Installation der Failover-Clustering-Feature auf allen Knoten
+
+Durchführung von Clusterüberprüfungstests mit dem Failovercluster-Manager
+
+Festlegung des Clusternamens und Zugriffspunkts für die Clusterverwaltung
+
+Maximal 16 Knoten pro Failovercluster für VMM-Instanzen
+
+VMM-Installation
+Einrichtung des VMM-Dienstkontos vor der Installation
+
+Konfiguration der Verteilten Schlüsselverwaltung (DKM) zur sicheren Speicherung der Verschlüsselungsschlüssel in Active Directory
+
+Planung der Hochverfügbarkeitsoption bereits bei der ersten Installation
+
+DKM-Container in Active Directory mit entsprechenden Berechtigungen einrichten
+
+Installation auf allen Clusterknoten mit identischer Konfiguration
+
+Netzwerkkonfiguration
+Physische Netzwerkadapter
+Mindestens zwei separate Netzwerke für jeden Host konfigurieren
+
+Separate Netzwerkadapter für Management, Live-Migration, VM-Traffic und Cluster-Kommunikation
+
+Identische Netzwerkkonfiguration auf allen Servern sicherstellen
+
+Bei Verwendung von NIC-Teaming ausreichend 1GBit- oder 10GBit-NICs pro Server vorsehen
+
+Netzwerkadapternamen sollten den jeweiligen Zweck widerspiegeln
+
+Logische Netzwerke
+Planung der logischen Netzwerke (z.B. Management, Live-Migration, VM-Traffic)
+
+Entscheidung zwischen automatischer oder manueller Erstellung logischer Netzwerke
+
+Festlegung des Netzwerktyps: Verbundenes Netzwerk oder unabhängiges Netzwerk
+
+Konfiguration der entsprechenden VM-Netzwerke für jeden Netzwerktyp
+
+Name des VMM-Dienstnetzwerks darf nicht länger als 15 Zeichen sein
+
+Virtuelle Switches
+Konsistente Benennung der virtuellen Switches auf allen Hosts
+
+Entscheidung zwischen Standard-Switches und logischen Switches
+
+Konfiguration von Port-Profilen und Port-Klassifikationen für logische Switches
+
+Einbindung von Switch-Erweiterungen (Monitoring, Capturing, Filtering, Forwarding)
+
+Option "Gemeinsames Verwenden dieses Netzwerkadapters für das Verwaltungsbetriebssystem" deaktivieren
+
+Speicherkonfiguration
+Gemeinsam genutzter Speicher
+Implementierung von gemeinsam genutztem Speicher für Cluster Shared Volumes (CSV)
+
+Festlegung geeigneter LUN-Größen für Quorum-Disk und CSV-Volumes
+
+Bereitstellung einer kleinen LUN (ca. 1GB) für das Quorum und größerer Einheiten als CSVs
+
+Alternativ können SMB-Freigaben für Hyper-V-Clustering verwendet werden
+
+Zugriffsberechtigungen für alle Hyper-V-Server im Cluster auf Speicherressourcen konfigurieren
+
+Speichernutzung
+Storage sollte nicht zwischen verschiedenen Clustern geteilt werden
+
+Standardspeicherorte für VHD- und Konfigurationsdateien auf CSV-Volumes ändern
+
+Sicherstellung der korrekten Bereitstellung und Formatierung der Speicherdatenträger
+
+Speicherpools oder logische Einheiten der entsprechenden Hostgruppe zuweisen
+
+Sicherheitskonfiguration
+Hostsicherheit
+Minimierung der Angriffsfläche durch Verwendung der minimalen Windows Server-Installation
+
+Host-Betriebssystem, Firmware und Gerätetreiber mit den neuesten Sicherheitsupdates aktualisieren
+
+Keine unnötige Software auf dem Hyper-V-Host installieren
+
+Remote-Verwaltung des Hyper-V-Hosts implementieren
+
+Code-Integritätsrichtlinien und virtualisierungsbasierte Sicherheitsdienste aktivieren
+
+Netzwerksicherheit
+Separates Netzwerk mit dediziertem Netzwerkadapter für den physischen Hyper-V-Computer verwenden
+
+Privates oder sicheres Netzwerk für den Zugriff auf VM-Konfigurationen und virtuelle Festplattendateien nutzen
+
+Privates/dediziertes Netzwerk für Live-Migration-Traffic einrichten
+
+IPSec auf dem Live-Migration-Netzwerk aktivieren für verschlüsselten Datentransfer
+
+Firewall-Ports für vSphere-Zugriff konfigurieren (Ports 7200 bis 7400 für ein- und ausgehenden Datenverkehr)
+
+Datensicherheit
+SMB 3.0 für Ende-zu-Ende-Verschlüsselung von SMB-Daten nutzen
+
+Verteilte Schlüsselverwaltung (DKM) für die sichere Speicherung von Verschlüsselungsschlüsseln in Active Directory einrichten
+
+Sicherstellung regelmäßiger Active Directory-Backups zum Schutz der DKM-Schlüssel
+
+Zugriffsrechte auf sensible Daten und Verschlüsselung von Backups überprüfen
+
+Hochverfügbarkeitskonfiguration
+VMM-Server für Hochverfügbarkeit
+VMM-Server im Hochverfügbarkeitsmodus bereitstellen
+
+Einrichtung des VMM-Dienstkontos und der Verteilten Schlüsselverwaltung vor der Bereitstellung
+
+Sicherstellung, dass die VMM-Datenbank hochverfügbar ist und in einem separaten Failovercluster bereitgestellt wird
+
+Dokumentation der gesamten Hochverfügbarkeitskonfiguration
+
+VMM-Bibliothek für Hochverfügbarkeit
+Einrichtung einer hochverfügbaren VMM-Bibliothek
+
+Gemeinsam genutzte Ordner für die Bibliothek auf einem Dateiserver-Cluster bereitstellen
+
+Sicherung der VMM-Bibliothek mit VSS-fähigen Backup-Tools
+
+Hyper-V-Host-Cluster
+Implementierung von Hyper-V-Host-Clustern für hochverfügbare VMs
+
+Tests des geplanten Failovers durch Live-Migration, schnelle Migration oder Storage-Migration
+
+Tests des ungeplanten Failovers durch Stoppen des Cluster-Dienstes
+
+Dokumentation der Failover-Szenarien und -Verfahren
+
+Backup und Wiederherstellung
+VMM-Backup
+Regelmäßige Sicherungen der VMM-Datenbank durchführen
+
+Verwendung nativer VMM-Tools zur Sicherung der VMM-Datenbank
+
+Automatisierung der Sicherung mit PowerShell-Skripten
+
+Sicherstellung, dass der SQL Server auf die Sicherungszielordner zugreifen kann
+
+VMM-Wiederherstellung
+Planung der Wiederherstellungsprozesse für verschiedene Szenarien
+
+Verwendung des SCVMMRecover.exe-Tools für die Wiederherstellung
+
+Berücksichtigung der manuellen Bereinigung von Hosts, die seit dem Backup entfernt wurden
+
+Vorbereitung auf die Ablösung von SCVMM Disaster Recovery durch Azure Site Recovery
+
+Rollen und Berechtigungen
+Benutzerverwaltung
+Einrichtung der erforderlichen Benutzerrollen: Administrator, VM-Administrator, Fabric-Administrator, Read-Only-Administrator, Tenant-Administrator, Anwendungsadministrator
+
+Festlegung der entsprechenden Berechtigungen für jede Rolle
+
+Konfiguration von "Run As"-Konten für verschiedene Aufgaben
+
+Einrichtung von Host-Computer-Konten, BMC-Konten, externen Konten, Netzwerkgerätekonten und Profilkonten
+
+RBAC (Role-Based Access Control)
+Implementierung rollenbasierter Sicherheit mit VMM
+
+Definition von Rollen mit entsprechendem Profil, Umfang und Mitgliederliste
+
+Festlegung der Zugriffsebenen für verschiedene Benutzergruppen
+
+Beschränkung der Administratorrechte auf das erforderliche Minimum
+
+Monitoring und Betrieb
+Überwachung
+Überwachung aller Systemkomponenten einrichten
+
+Verwendung der bereitgestellten Audit-Tools
+
+Konfiguration von Benachrichtigungen für kritische Ereignisse
+
+Einrichtung eines zentralen Monitoring-Systems für alle Clusterkomponenten
+
+Automatisierung
+Automatisierung von Routineaufgaben durch Skripte
+
+Entwicklung von Mustern und Praktiken zur Vermeidung von Migrationsfehlerfehlern
+
+Automatisierung der Dokumentation von Änderungen
+
+Einrichtung automatisierter Tests für Failover-Szenarien
+
+Ressourcenmanagement
+Berücksichtigung, dass Ressourcen in einem Cluster anders ausgeschöpft werden
+
+Nur VMs clustern, die Hochverfügbarkeit benötigen
+
+Minimierung der Nutzung von Nicht-HA-VMs in einem Cluster
+
+Keine Nicht-HA-Maschinen auf Cluster Shared Volumes platzieren
+
+Best Practices
+Allgemeine Best Practices
+Dokumentation aller Konfigurationen und Änderungen
+
+Verwendung mehrerer gemeinsam genutzter Speicherorte
+
+Verwendung von mindestens zwei verschiedenen Clusternetzwerken, vorzugsweise mehr
+
+Minimierung der Anzahl von Netzwerkadapter-Teams
+
+Lizenzierung immer im Auge behalten
+
+Netzwerk-Best-Practices
+Konfiguration von QoS nur nach Feststellung des Bedarfs
+
+Keine Beeinträchtigung der VMs zugunsten der Live-Migration oder anderer Dienste
+
+Vorsicht bei der Verwendung computerbasierten Gruppenrichtlinien
+
+Vermeidung geografisch verteilter Hyper-V-Cluster
+
+Cluster-Best-Practices
+Streben nach Knotenhomogenität
+
+Regelmäßige Tests der Failover-Funktionalität
+
+Sicherstellung der korrekten Quorum-Konfiguration
+
+Bei Problemen oder Unsicherheiten immer einen Experten konsultieren
+
+Herausforderungen und Problemlösungen
+Bekannte Probleme
+Identifizierung und Lösung von Problemen mit ARMv7-Plattformen
+
+Umgang mit temporären Problemen bei der Installation
+
+Bewältigung von Hardware-spezifischen Herausforderungen
+
+Zeitverzerrungsproblematik bei virtuellen Maschinen
+
+Leistungsoptimierung
+Messung und Optimierung des Wirkungsgrads der Virtualisierung
+
+Optimierung rechenintensiver Prozesse
+
+Verbesserung des Zugriffs auf den Hauptspeicher
+
+Berücksichtigung spezifischer Leistungsanforderungen von VMs
+
+Diese umfassende Checkliste bietet eine solide Grundlage für die Programmierung eines Hilfstools zur Implementierung eines VMM-Clusters durch eine KI. Durch die Berücksichtigung aller genannten Punkte kann eine strukturierte, sichere und leistungsstarke VMM-Cluster-Umgebung aufgebaut werden, die den Anforderungen moderner Datacenter gerecht wird.
