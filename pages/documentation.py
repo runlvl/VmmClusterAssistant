@@ -13,9 +13,9 @@ from utils.documentation_generator import (
 
 def render_documentation():
     """Render the documentation generation page."""
-    st.title("Documentation Generation")
+    st.title("Generate Implementation Documentation (Final Step)")
     
-    st.write("Generate comprehensive documentation for your VMM cluster implementation based on your configuration selections.")
+    st.write("This is the final step of your VMM cluster implementation. Generate comprehensive documentation and PowerShell scripts based on your configuration selections.")
     
     # Get configuration from session state
     if "configuration" not in st.session_state:

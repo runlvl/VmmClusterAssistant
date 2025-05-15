@@ -57,7 +57,7 @@ implementation_steps = [
     "Backup & Restore",
     "Roles & Permissions",
     "Monitoring",
-    "Documentation"
+    "Generate Implementation Documentation (Final Step)"
 ]
 
 # Sidebar
