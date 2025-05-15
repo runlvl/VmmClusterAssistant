@@ -253,44 +253,53 @@ def render_introduction():
         for practice in best_practices[categories[4]]:
             st.markdown(f"- {practice}")
     
-    # Next step button
+    # Buttons for next steps
     st.markdown("---")
-    if st.button("Proceed to Hardware Requirements", key="next_to_hardware"):
-        st.session_state.current_step = 1
-        st.rerun()
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("View Installation Guide", key="next_to_installation"):
+            st.session_state.current_step = 1
+            st.rerun()
+    with col2:
+        if st.button("Proceed to Hardware Requirements", key="next_to_hardware"):
+            st.session_state.current_step = 2
+            st.rerun()
 
 # Main content renderer
 if st.session_state.current_step == 0:
     render_introduction()
 elif st.session_state.current_step == 1:
     # Import and render at runtime to avoid circular imports
+    from pages.installation import render_installation_documentation
+    render_installation_documentation()
+elif st.session_state.current_step == 2:
     from pages.hardware_requirements import render_hardware_requirements
     render_hardware_requirements()
-elif st.session_state.current_step == 2:
+elif st.session_state.current_step == 3:
     from pages.software_requirements import render_software_requirements
     render_software_requirements()
-elif st.session_state.current_step == 3:
+elif st.session_state.current_step == 4:
     from pages.network_configuration import render_network_configuration
     render_network_configuration()
-elif st.session_state.current_step == 4:
+elif st.session_state.current_step == 5:
     from pages.storage_configuration import render_storage_configuration
     render_storage_configuration()
-elif st.session_state.current_step == 5:
+elif st.session_state.current_step == 6:
     from pages.security_settings import render_security_settings
     render_security_settings()
-elif st.session_state.current_step == 6:
+elif st.session_state.current_step == 7:
     from pages.high_availability import render_high_availability
     render_high_availability()
-elif st.session_state.current_step == 7:
+elif st.session_state.current_step == 8:
     from pages.backup_restore import render_backup_restore
     render_backup_restore()
-elif st.session_state.current_step == 8:
+elif st.session_state.current_step == 9:
     from pages.roles_permissions import render_roles_permissions
     render_roles_permissions()
-elif st.session_state.current_step == 9:
+elif st.session_state.current_step == 10:
     from pages.monitoring import render_monitoring
     render_monitoring()
-elif st.session_state.current_step == 10:
+elif st.session_state.current_step == 11:
     from pages.documentation import render_documentation
     render_documentation()
 
