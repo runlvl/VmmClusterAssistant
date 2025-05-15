@@ -7,6 +7,37 @@ from utils.storage_validator import (
     estimate_storage_needs
 )
 
+def _get_intro_text(deployment_type):
+    """Get introduction text based on deployment type."""
+    if deployment_type == "hyperv":
+        return "Configure the storage settings for your Hyper-V cluster. Proper storage setup is essential for cluster shared volumes, VM storage, and high availability."
+    else:
+        return "Configure the storage settings for your Hyper-V cluster with SCVMM. Proper storage setup is essential for cluster shared volumes, VM storage, SCVMM library, and high availability."
+
+def _save_storage_configuration(storage_type, csv_volumes, csv_count, quorum_disk, mpio_enabled, 
+                          shared_between_clusters, redundancy, storage_connectivity, filesystem, is_s2d, hyper_v_hosts):
+    """Save storage configuration to session state."""
+    st.session_state.configuration["storage"] = {
+        "storage_type": storage_type,
+        "csv_volumes": csv_volumes,
+        "csv_count": int(csv_count),
+        "quorum_disk": quorum_disk,
+        "mpio_enabled": mpio_enabled,
+        "shared_between_clusters": shared_between_clusters,
+        "redundancy": redundancy,
+        "storage_connectivity": storage_connectivity,
+        "filesystem": filesystem, 
+        "is_s2d": is_s2d,
+        "host_count": hyper_v_hosts
+    }
+    
+    if "completed_steps" not in st.session_state:
+        st.session_state.completed_steps = set()
+    
+    st.session_state.completed_steps.add(4)  # Mark storage configuration step as completed
+    st.session_state.current_step = 5  # Move to next step (security settings)
+    st.rerun()
+
 def render_storage_configuration():
     """Render the storage configuration page."""
     st.title("Storage Configuration")
@@ -14,12 +45,14 @@ def render_storage_configuration():
     # Get deployment type from session state
     deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
     
-    if deployment_type == "hyperv":
-        st.write("Configure the storage settings for your Hyper-V cluster. Proper storage setup is essential for cluster shared volumes, VM storage, and high availability.")
-    else:
-        st.write("Configure the storage settings for your Hyper-V cluster with SCVMM. Proper storage setup is essential for cluster shared volumes, VM storage, SCVMM library, and high availability.")
+    # Display appropriate introduction text
+    st.write(_get_intro_text(deployment_type))
     
-    # Initialize storage configuration in session state if not present
+    # Initialize storage configuration
+    _initialize_storage_config()
+    
+def _initialize_storage_config():
+    """Initialize storage configuration in session state if not present."""
     if "configuration" not in st.session_state:
         st.session_state.configuration = {}
     
@@ -30,29 +63,6 @@ def render_storage_configuration():
             "quorum_disk": {"size_gb": 1},
             "mpio_enabled": True
         }
-    
-    # Function to update session state when storage configuration is confirmed
-    def confirm_storage_configuration():
-        st.session_state.configuration["storage"] = {
-            "storage_type": storage_type,
-            "csv_volumes": csv_volumes,
-            "csv_count": int(csv_count),
-            "quorum_disk": quorum_disk,
-            "mpio_enabled": mpio_enabled,
-            "shared_between_clusters": shared_between_clusters,
-            "redundancy": redundancy,
-            "storage_connectivity": storage_connectivity,
-            "filesystem": filesystem, 
-            "is_s2d": is_s2d,
-            "host_count": hyper_v_hosts
-        }
-        
-        if "completed_steps" not in st.session_state:
-            st.session_state.completed_steps = set()
-        
-        st.session_state.completed_steps.add(4)  # Mark storage configuration step as completed
-        st.session_state.current_step = 5  # Move to next step (security settings)
-        st.rerun()
     
     # Storage Architecture
     st.header("Storage Architecture")
