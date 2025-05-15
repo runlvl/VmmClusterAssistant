@@ -44,12 +44,13 @@ def validate_security_configuration(config):
     
     # Validate Distributed Key Management (DKM)
     if "dkm" in config and isinstance(config["dkm"], dict):
-        if "container_name" not in config["dkm"]:
-            results["errors"].append("DKM container name must be specified")
+        if not config["dkm"].get("enabled", False):
+            results["recommendations"].append("Enabling Distributed Key Management (DKM) is recommended for secure encryption key storage")
+        elif "container_name" not in config["dkm"] or not config["dkm"]["container_name"]:
+            results["errors"].append("DKM container name must be specified when DKM is enabled")
             results["status"] = False
     else:
-        results["errors"].append("Distributed Key Management (DKM) configuration is required")
-        results["status"] = False
+        results["recommendations"].append("Configure Distributed Key Management (DKM) for secure encryption key storage")
     
     # Check role-based access control
     if "roles" not in config or not config["roles"]:

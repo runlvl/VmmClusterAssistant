@@ -295,7 +295,10 @@ def render_security_settings():
         "network_isolation": network_isolation,
         "ipsec_migration": ipsec_migration,
         "smb_encryption": smb_encryption,
-        "dkm": dkm_enabled,
+        "dkm": {
+            "enabled": dkm_enabled,
+            "container_name": dkm_container
+        },
         "code_integrity": code_integrity,
         "update_policy": update_policy,
         "password_policy": password_policy,
