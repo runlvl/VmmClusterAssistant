@@ -11,7 +11,13 @@ def render_storage_configuration():
     """Render the storage configuration page."""
     st.title("Storage Configuration")
     
-    st.write("Configure the storage settings for your VMM cluster. Proper storage setup is essential for cluster shared volumes, VM storage, and high availability.")
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Configure the storage settings for your Hyper-V cluster. Proper storage setup is essential for cluster shared volumes, VM storage, and high availability.")
+    else:
+        st.write("Configure the storage settings for your Hyper-V cluster with SCVMM. Proper storage setup is essential for cluster shared volumes, VM storage, SCVMM library, and high availability.")
     
     # Initialize storage configuration in session state if not present
     if "configuration" not in st.session_state:

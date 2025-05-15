@@ -12,24 +12,42 @@ def render_high_availability():
     """Render the high availability configuration page."""
     st.title("High Availability Configuration")
     
-    st.write("Configure high availability settings for your VMM cluster. Proper HA configuration is essential for maintaining service continuity.")
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Configure high availability settings for your Hyper-V cluster. Proper HA configuration is essential for maintaining service continuity.")
+    else:
+        st.write("Configure high availability settings for your Hyper-V cluster with SCVMM. Proper HA configuration is essential for maintaining service continuity.")
     
     # Initialize HA configuration in session state if not present
     if "configuration" not in st.session_state:
         st.session_state.configuration = {}
     
     if "ha" not in st.session_state.configuration:
-        st.session_state.configuration["ha"] = {
-            "enabled": True,
-            "cluster": {
-                "name": "VMM-Cluster",
-                "node_count": 2,
-                "quorum_type": "NodeAndDiskMajority",
-                "witness_type": "DiskWitness"
-            },
-            "vmm_service_account": "DOMAIN\\svc_vmm",
-            "library_ha": True
-        }
+        # Default values based on deployment type
+        if deployment_type == "hyperv":
+            st.session_state.configuration["ha"] = {
+                "enabled": True,
+                "cluster": {
+                    "name": "HV-Cluster",
+                    "node_count": 2,
+                    "quorum_type": "NodeAndDiskMajority",
+                    "witness_type": "DiskWitness"
+                }
+            }
+        else:
+            st.session_state.configuration["ha"] = {
+                "enabled": True,
+                "cluster": {
+                    "name": "VMM-Cluster",
+                    "node_count": 2,
+                    "quorum_type": "NodeAndDiskMajority",
+                    "witness_type": "DiskWitness"
+                },
+                "vmm_service_account": "DOMAIN\\svc_vmm",
+                "library_ha": True
+            }
     
     # Function to update session state when HA configuration is confirmed
     def confirm_ha_configuration():
@@ -60,18 +78,28 @@ def render_high_availability():
     # High Availability Options
     st.header("High Availability Options")
     
-    ha_enabled = st.checkbox(
-        "Enable High Availability for VMM",
-        value=True,
-        help="Deploy VMM in a highly available configuration"
-    )
+    # Get deployment type
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        ha_enabled = st.checkbox(
+            "Enable High Availability for Hyper-V",
+            value=True,
+            help="Deploy Hyper-V in a highly available configuration"
+        )
+    else:
+        ha_enabled = st.checkbox(
+            "Enable High Availability for Hyper-V and SCVMM",
+            value=True,
+            help="Deploy both Hyper-V and SCVMM in a highly available configuration"
+        )
     
     if not ha_enabled:
         st.warning("High availability is strongly recommended for production environments.")
     
-    # Get existing values from software configuration
+    # Get existing values from software configuration - only for SCVMM deployment
     default_vmm_service_account = "DOMAIN\\svc_vmm"
-    if "software" in st.session_state.configuration and "service_account" in st.session_state.configuration["software"]:
+    if deployment_type == "scvmm" and "software" in st.session_state.configuration and "service_account" in st.session_state.configuration["software"]:
         default_vmm_service_account = st.session_state.configuration["software"]["service_account"]
     
     # Get number of Hyper-V hosts from hardware configuration
@@ -84,9 +112,12 @@ def render_high_availability():
         col1, col2 = st.columns(2)
         
         with col1:
+            # Set default cluster name based on deployment type
+            default_cluster_name = "HV-Cluster" if deployment_type == "hyperv" else "VMM-Cluster"
+            
             cluster_name = st.text_input(
                 "Cluster Name",
-                value="VMM-Cluster",
+                value=default_cluster_name,
                 help="Enter the name for the failover cluster"
             )
             
@@ -159,14 +190,15 @@ def render_high_availability():
                 help="Enter the Azure storage account name for Cloud Witness"
             )
         
-        # Optional VMM High Availability Configuration
-        st.header("SCVMM (Optional)")
-        
-        use_vmm = st.checkbox(
-            "Deploy with System Center VMM",
-            value=False,
-            help="Include System Center Virtual Machine Manager in the deployment"
-        )
+        # Optional SCVMM High Availability Configuration - only shown when SCVMM is selected as deployment type
+        if deployment_type == "scvmm":
+            st.header("SCVMM Configuration")
+            
+            # Note: We don't need the VMM checkbox since it's already determined by deployment_type
+            use_vmm = True
+        else:
+            # For Hyper-V only deployment, hide all VMM-specific settings
+            use_vmm = False
         
         if use_vmm:
             vmm_service_account = st.text_input(
