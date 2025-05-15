@@ -11,73 +11,7 @@ from utils.network_validator import (
     create_network_visualization
 )
 
-def validate_nic_speed_requirements(network_adapters, is_s2d=False):
-    """
-    Validate that NIC speed meets modern requirements.
-    
-    Args:
-        network_adapters: List of configured network adapters
-        is_s2d: Whether Storage Spaces Direct is used
-        
-    Returns:
-        dict: Validation results containing status, errors, warnings, and recommendations
-    """
-    result = {
-        "status": True,
-        "errors": [],
-        "warnings": [],
-        "recommendations": []
-    }
-    
-    # Collect NIC speeds by server and network type
-    server_nics = {}
-    for adapter in network_adapters:
-        server = adapter["server"]
-        network_type = adapter["network_type"]
-        speed = adapter["speed"]
-        
-        if server not in server_nics:
-            server_nics[server] = {}
-        
-        if network_type not in server_nics[server]:
-            server_nics[server][network_type] = []
-        
-        server_nics[server][network_type].append(speed)
-    
-    # Validate each server's NIC configuration
-    for server, nic_config in server_nics.items():
-        # Check for minimum 10 Gbps NICs
-        has_slow_nics = False
-        for network_type, speeds in nic_config.items():
-            for speed in speeds:
-                if "1 Gbps" in speed:
-                    has_slow_nics = True
-                    result["warnings"].append(f"Server {server} has a 1 Gbps NIC for {network_type}. 10 Gbps is the recommended minimum.")
-        
-        # Check for minimum 2 NICs per network type (redundancy)
-        for network_type, speeds in nic_config.items():
-            if len(speeds) < 2:
-                result["warnings"].append(f"Server {server} has only {len(speeds)} NIC(s) for {network_type}. At least 2 NICs are recommended for redundancy.")
-                
-        # Check for S2D specific requirements (25 Gbps NICs for storage)
-        if is_s2d:
-            if "Live Migration" in nic_config:
-                has_25gbps = False
-                for speed in nic_config["Live Migration"]:
-                    if "25 Gbps" in speed or "40 Gbps" in speed:
-                        has_25gbps = True
-                
-                if not has_25gbps:
-                    result["warnings"].append(f"Server {server} should have at least one 25 Gbps or faster NIC for Live Migration with S2D.")
-                    result["recommendations"].append(f"For S2D deployments, configure at least 2x 25 Gbps NICs for Live Migration on server {server}.")
-    
-    # General recommendations based on overall configuration
-    if is_s2d:
-        result["recommendations"].append("For Storage Spaces Direct (S2D), it's recommended to have at least 2x2 25 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
-    else:
-        result["recommendations"].append("For standard deployments, it's recommended to have at least 2x2 10 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
-    
-    return result
+
 
 def render_network_configuration():
     """Render the network configuration page."""
@@ -570,6 +504,75 @@ def render_network_configuration():
     
     # Add storage type and custom speed requirements to validation
     network_config["is_s2d"] = is_s2d
+    
+    # Internal function to validate NIC speed requirements
+    def validate_nic_speed_requirements(network_adapters, is_s2d=False):
+        """
+        Validate that NIC speed meets modern requirements.
+        
+        Args:
+            network_adapters: List of configured network adapters
+            is_s2d: Whether Storage Spaces Direct is used
+            
+        Returns:
+            dict: Validation results containing status, errors, warnings, and recommendations
+        """
+        result = {
+            "status": True,
+            "errors": [],
+            "warnings": [],
+            "recommendations": []
+        }
+        
+        # Collect NIC speeds by server and network type
+        server_nics = {}
+        for adapter in network_adapters:
+            server = adapter["server"]
+            network_type = adapter["network_type"]
+            speed = adapter["speed"]
+            
+            if server not in server_nics:
+                server_nics[server] = {}
+            
+            if network_type not in server_nics[server]:
+                server_nics[server][network_type] = []
+            
+            server_nics[server][network_type].append(speed)
+        
+        # Validate each server's NIC configuration
+        for server, nic_config in server_nics.items():
+            # Check for minimum 10 Gbps NICs
+            has_slow_nics = False
+            for network_type, speeds in nic_config.items():
+                for speed in speeds:
+                    if "1 Gbps" in speed:
+                        has_slow_nics = True
+                        result["warnings"].append(f"Server {server} has a 1 Gbps NIC for {network_type}. 10 Gbps is the recommended minimum.")
+            
+            # Check for minimum 2 NICs per network type (redundancy)
+            for network_type, speeds in nic_config.items():
+                if len(speeds) < 2:
+                    result["warnings"].append(f"Server {server} has only {len(speeds)} NIC(s) for {network_type}. At least 2 NICs are recommended for redundancy.")
+                    
+            # Check for S2D specific requirements (25 Gbps NICs for storage)
+            if is_s2d:
+                if "Live Migration" in nic_config:
+                    has_25gbps = False
+                    for speed in nic_config["Live Migration"]:
+                        if "25 Gbps" in speed or "40 Gbps" in speed:
+                            has_25gbps = True
+                    
+                    if not has_25gbps:
+                        result["warnings"].append(f"Server {server} should have at least one 25 Gbps or faster NIC for Live Migration with S2D.")
+                        result["recommendations"].append(f"For S2D deployments, configure at least 2x 25 Gbps NICs for Live Migration on server {server}.")
+        
+        # General recommendations based on overall configuration
+        if is_s2d:
+            result["recommendations"].append("For Storage Spaces Direct (S2D), it's recommended to have at least 2x2 25 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
+        else:
+            result["recommendations"].append("For standard deployments, it's recommended to have at least 2x2 10 Gbps NICs (2 for VM traffic, 2 for storage/migration).")
+        
+        return result
     
     # Validate NIC speed based on storage type
     nic_speed_validation = validate_nic_speed_requirements(network_adapters, is_s2d)
