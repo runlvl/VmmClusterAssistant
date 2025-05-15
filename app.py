@@ -54,7 +54,7 @@ def set_header():
         .header-text {{
             display: inline-block;
             line-height: 1;
-            padding-bottom: 2px; /* Fine-tune the alignment to the baseline */
+            padding-bottom: 4px; /* Increased to move text up relative to logo */
         }}
         .header-title {{
             color: #1C5631;
@@ -70,7 +70,7 @@ def set_header():
             <img src="data:image/png;base64,{logo_base64}" class="logo-image">
         </div>
         <div class="header-text">
-            <div class="header-title">Professional Services | Datacenter & Endpoint</div>
+            <div class="header-title"><span style="font-size: 26px;">Professional Services</span> | Datacenter & Endpoint</div>
         </div>
     </div>
     """
