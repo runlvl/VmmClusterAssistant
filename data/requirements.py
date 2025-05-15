@@ -25,14 +25,14 @@ def get_hardware_requirements():
             },
             {
                 "Component": "Network",
-                "Minimum": "2 x 1 Gbps",
-                "Recommended": "4+ NICs (10 Gbps)",
-                "Notes": "Separate networks recommended"
+                "Minimum": "2 x 10 Gbps",
+                "Recommended": "2x2 10 Gbps (Classical Storage) / 2x2 25 Gbps (Storage Spaces Direct)",
+                "Notes": "Separate networks for management, VM traffic, and storage"
             },
             {
                 "Component": "Operating System",
-                "Minimum": "Windows Server 2019",
-                "Recommended": "Windows Server 2022",
+                "Minimum": "Windows Server 2022",
+                "Recommended": "Windows Server 2025",
                 "Notes": "Standard or Datacenter edition"
             }
         ],
@@ -65,25 +65,25 @@ def get_hardware_requirements():
         "network_requirements": [
             {
                 "Component": "Management Network",
-                "Minimum": "1 Gbps",
+                "Minimum": "10 Gbps",
                 "Recommended": "10 Gbps",
-                "Notes": "For host and VMM management"
+                "Notes": "For host management"
             },
             {
                 "Component": "Live Migration Network",
-                "Minimum": "1 Gbps",
-                "Recommended": "10+ Gbps",
-                "Notes": "Dedicated network recommended"
+                "Minimum": "10 Gbps",
+                "Recommended": "25 Gbps",
+                "Notes": "Optional if multiple clusters or standalone hosts exist"
             },
             {
                 "Component": "VM Network",
-                "Minimum": "1 Gbps",
-                "Recommended": "10+ Gbps",
+                "Minimum": "10 Gbps",
+                "Recommended": "25 Gbps",
                 "Notes": "For VM traffic"
             },
             {
                 "Component": "Cluster Network",
-                "Minimum": "1 Gbps",
+                "Minimum": "10 Gbps",
                 "Recommended": "10 Gbps",
                 "Notes": "For cluster heartbeat"
             }
@@ -100,19 +100,14 @@ def get_software_requirements():
     software_requirements = {
         "os_requirements": [
             {
+                "Component": "Windows Server 2025",
+                "Editions": "Standard or Datacenter",
+                "Notes": "Latest updates recommended"
+            },
+            {
                 "Component": "Windows Server 2022",
                 "Editions": "Standard or Datacenter",
                 "Notes": "Latest updates recommended"
-            },
-            {
-                "Component": "Windows Server 2019",
-                "Editions": "Standard or Datacenter",
-                "Notes": "Latest updates recommended"
-            },
-            {
-                "Component": "Windows Server 2016",
-                "Editions": "Standard or Datacenter",
-                "Notes": "Consider upgrading to newer version"
             }
         ],
         "required_features": [
@@ -140,40 +135,32 @@ def get_software_requirements():
         "vmm_requirements": [
             {
                 "Component": "System Center 2022",
-                "Compatible OS": "Windows Server 2022/2019",
-                "Notes": "Latest version recommended"
-            },
-            {
-                "Component": "System Center 2019",
-                "Compatible OS": "Windows Server 2019/2016",
-                "Notes": "Compatible with Windows Server 2019"
-            },
-            {
-                "Component": "System Center 2016",
-                "Compatible OS": "Windows Server 2016",
-                "Notes": "Consider upgrading to newer version"
+                "Compatible OS": "Windows Server 2022",
+                "Notes": "Latest version recommended (Optional)"
             }
         ],
         "sql_requirements": [
             {
                 "Component": "SQL Server 2022",
-                "Compatible OS": "Windows Server 2022/2019",
+                "Compatible OS": "Windows Server 2022/2025",
                 "Notes": "Latest version recommended"
+            }
+        ],
+        "file_system_requirements": [
+            {
+                "Component": "NTFS",
+                "Usage": "System volumes, non-clustered storage",
+                "Notes": "Default file system for Windows"
             },
             {
-                "Component": "SQL Server 2019",
-                "Compatible OS": "Windows Server 2019/2016",
-                "Notes": "Compatible with Windows Server 2019"
+                "Component": "ReFS",
+                "Usage": "Storage Spaces Direct only",
+                "Notes": "Do NOT use with classical storage"
             },
             {
-                "Component": "SQL Server 2017",
-                "Compatible OS": "Windows Server 2019/2016",
-                "Notes": "Supported version"
-            },
-            {
-                "Component": "SQL Server 2016",
-                "Compatible OS": "Windows Server 2016",
-                "Notes": "Consider upgrading to newer version"
+                "Component": "CSV Configuration",
+                "Usage": "At least one CSV per host",
+                "Notes": "Required for proper failover functionality"
             }
         ]
     }
