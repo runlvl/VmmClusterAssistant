@@ -19,7 +19,7 @@ from data.requirements import get_hardware_requirements, get_software_requiremen
 
 # App configuration
 st.set_page_config(
-    page_title="VMM Cluster Implementation Tool - Bechtle Austria GmbH",
+    page_title="Hyper-V Cluster Implementation Tool - Bechtle Austria GmbH",
     page_icon="🖥️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -88,6 +88,7 @@ if 'completed_steps' not in st.session_state:
 
 if 'configuration' not in st.session_state:
     st.session_state.configuration = {
+        "deployment_type": "hyperv", # Default to Hyper-V only deployment
         "hardware": {},
         "software": {},
         "network": {},
@@ -98,6 +99,10 @@ if 'configuration' not in st.session_state:
         "roles": {},
         "monitoring": {}
     }
+
+# Initialize deployment type if not set
+if "deployment_type" not in st.session_state.configuration:
+    st.session_state.configuration["deployment_type"] = "hyperv"
 
 # Define implementation steps
 implementation_steps = [
@@ -117,7 +122,7 @@ implementation_steps = [
 
 # Sidebar
 with st.sidebar:
-    st.title("VMM Cluster Implementation")
+    st.title("Hyper-V Cluster Implementation")
     st.caption("Bechtle Austria GmbH")
     
     # Display progress
