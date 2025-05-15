@@ -136,11 +136,11 @@ def render_documentation():
             help="Generate PowerShell scripts for implementation tasks"
         )
     
-    # Generate Documentation
-    st.header("Generate Documentation")
+    # Erzeugung der Implementierungsdokumentation und Skripte
+    st.header("Erzeugung der Implementierungsdokumentation und PowerShell-Skripte")
     
-    if st.button("Generate Documentation", key="generate_docs"):
-        with st.spinner("Generating documentation..."):
+    if st.button("VMM-Implementierungsdokumentation und PowerShell-Skripte erstellen", key="generate_docs"):
+        with st.spinner("Dokumentation und PowerShell-Skripte werden generiert..."):
             # Generate HTML documentation
             html_documentation = generate_implementation_documentation(config)
             
@@ -157,57 +157,75 @@ def render_documentation():
             st.session_state.documentation_generated["html"] = html_documentation
             st.session_state.documentation_generated["scripts"] = scripts
             
-            st.success("Documentation generated successfully!")
+            st.success("VMM-Implementierungsdokumentation und PowerShell-Skripte wurden erfolgreich erstellt! Bitte nutzen Sie die Download-Buttons unten, um die Dateien herunterzuladen.")
     
-    # Download Documentation
+    # Download der Dokumentation und Skripte
     if "documentation_generated" in st.session_state:
-        st.header("Download Documentation")
+        st.header("Download der VMM-Implementierungsdateien")
         
-        # HTML Documentation
-        if "html" in st.session_state.documentation_generated:
-            doc_filename = f"{project_name.replace(' ', '_')}_Documentation.html"
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # HTML Documentation
+            if "html" in st.session_state.documentation_generated:
+                doc_filename = f"{project_name.replace(' ', '_')}_VMM_Implementierungsdokumentation.html"
+                
+                # Create download button for HTML
+                html_content = st.session_state.documentation_generated["html"]
+                st.download_button(
+                    label="Implementierungsdokumentation (HTML) herunterladen",
+                    data=html_content,
+                    file_name=doc_filename,
+                    mime="text/html",
+                    help="Detaillierte HTML-Dokumentation mit allen Implementierungsschritten und Diagrammen"
+                )
             
-            # Create download button for HTML
-            html_content = st.session_state.documentation_generated["html"]
-            st.download_button(
-                label="Download HTML Documentation",
-                data=html_content,
-                file_name=doc_filename,
-                mime="text/html"
-            )
+            # PowerShell Scripts
+            if "scripts" in st.session_state.documentation_generated and include_scripts:
+                # Create a zip file of scripts
+                script_content = ""
+                for script_name, script_text in st.session_state.documentation_generated["scripts"].items():
+                    script_content += f"# {script_name}\n{script_text}\n\n"
+                
+                st.download_button(
+                    label="PowerShell-Implementierungsskripte herunterladen",
+                    data=script_content,
+                    file_name=f"{project_name.replace(' ', '_')}_VMM_Implementierungsskripte.ps1",
+                    mime="text/plain",
+                    help="Ausführbare PowerShell-Skripte für die automatisierte VMM-Implementation"
+                )
         
-        # PowerShell Scripts
-        if "scripts" in st.session_state.documentation_generated and include_scripts:
-            # Create a zip file of scripts
-            script_content = ""
-            for script_name, script_text in st.session_state.documentation_generated["scripts"].items():
-                script_content += f"# {script_name}\n{script_text}\n\n"
+        with col2:
+            # Configuration JSON
+            config_json = json.dumps(config, indent=2)
+            st.download_button(
+                label="Konfigurationsdaten als JSON exportieren",
+                data=config_json,
+                file_name=f"{project_name.replace(' ', '_')}_VMM_Konfiguration.json",
+                mime="application/json",
+                help="Exportieren Sie die Konfiguration, um sie später wiederverwenden zu können"
+            )
             
-            st.download_button(
-                label="Download PowerShell Scripts",
-                data=script_content,
-                file_name=f"{project_name.replace(' ', '_')}_Scripts.ps1",
-                mime="text/plain"
+            # Add an option to import configuration
+            st.file_uploader(
+                "Konfigurationsdaten importieren", 
+                type=["json"], 
+                key="config_import",
+                help="Laden Sie eine zuvor exportierte JSON-Konfigurationsdatei"
             )
-        
-        # Configuration JSON
-        config_json = json.dumps(config, indent=2)
-        st.download_button(
-            label="Download Configuration JSON",
-            data=config_json,
-            file_name=f"{project_name.replace(' ', '_')}_Config.json",
-            mime="application/json"
-        )
     
-    # Documentation preview
+    # Vorschau der generierten Dokumentation
     if "documentation_generated" in st.session_state and "html" in st.session_state.documentation_generated:
-        st.header("Documentation Preview")
+        st.header("Vorschau der Implementierungsdokumentation")
         
-        with st.expander("Preview Documentation", expanded=False):
-            st.components.v1.html(st.session_state.documentation_generated["html"], height=600, scrolling=True)
+        with st.expander("Dokumentationsvorschau anzeigen", expanded=False):
+            try:
+                st.components.v1.html(st.session_state.documentation_generated["html"], height=600, scrolling=True)
+            except:
+                st.warning("Vorschau konnte nicht angezeigt werden. Laden Sie die HTML-Datei herunter, um die vollständige Dokumentation zu sehen.")
     
-    # Implementation checklist summary
-    st.header("Implementation Checklist")
+    # Implementierungs-Checkliste
+    st.header("Implementierungs-Checkliste")
     
     # Check which steps have been completed
     completed_steps = st.session_state.get("completed_steps", set())
@@ -215,28 +233,28 @@ def render_documentation():
     
     # Create checklist
     checklist_items = [
-        "Hardware Requirements",
-        "Software Requirements",
-        "Network Configuration",
-        "Storage Configuration",
-        "Security Settings",
-        "High Availability",
-        "Backup & Restore",
-        "Roles & Permissions",
+        "Hardware-Anforderungen",
+        "Software-Anforderungen",
+        "Netzwerkkonfiguration",
+        "Speicherkonfiguration",
+        "Sicherheitseinstellungen",
+        "Hochverfügbarkeit",
+        "Backup & Wiederherstellung",
+        "Rollen & Berechtigungen",
         "Monitoring",
-        "Documentation"
+        "Dokumentation"
     ]
     
     checklist_status = []
     for i, item in enumerate(checklist_items):
-        status = "Completed" if i+1 in completed_steps else "Pending"
-        checklist_status.append({"Step": item, "Status": status})
+        status = "Abgeschlossen" if i+1 in completed_steps else "Ausstehend"
+        checklist_status.append({"Schritt": item, "Status": status})
     
     checklist_df = pd.DataFrame(checklist_status)
     
     # Apply conditional formatting
     def highlight_status(val):
-        if val == "Completed":
+        if val == "Abgeschlossen":
             return 'background-color: #CCFFCC'
         else:
             return 'background-color: #FFFFCC'
@@ -247,30 +265,11 @@ def render_documentation():
     # Calculate progress
     progress_percentage = len(completed_steps) / total_steps * 100
     st.progress(progress_percentage / 100)
-    st.info(f"Implementation Progress: {progress_percentage:.1f}%")
+    st.info(f"Implementierungsfortschritt: {progress_percentage:.1f}%")
     
-    # Export complete config
-    config_json = json.dumps(config, indent=2)
-    st.download_button(
-        label="Export Complete Configuration",
-        data=config_json,
-        file_name="vmm_cluster_config.json",
-        mime="application/json"
-    )
-    
-    # Import configuration
-    st.header("Import Configuration")
-    
-    uploaded_file = st.file_uploader("Upload Configuration File", type=["json"])
-    if uploaded_file is not None:
-        try:
-            imported_config = json.load(uploaded_file)
-            if st.button("Apply Imported Configuration"):
-                st.session_state.configuration = imported_config
-                st.success("Configuration imported successfully!")
-                st.rerun()
-        except Exception as e:
-            st.error(f"Error importing configuration: {str(e)}")
+    # Diese Bereiche wurden bereits weiter oben implementiert
+    # in der Spalte "Konfigurationsdaten als JSON exportieren"
+    # und "Konfigurationsdaten importieren"
     
     # Navigation buttons
     st.markdown("---")
