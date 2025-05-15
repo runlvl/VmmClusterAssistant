@@ -344,7 +344,8 @@ def render_monitoring():
             st.metric(label="Cluster Status", value="Healthy", delta="0 issues")
         
         with col3:
-            st.metric(label="Hosts Online", value=f"{node_count}/{node_count}", delta="All online")
+            host_count = len([c for c in components if "Host" in c["name"]])
+            st.metric(label="Hosts Online", value=f"{host_count}/{host_count}", delta="All online")
         
         with col4:
             st.metric(label="Overall Health", value="Good", delta="100%")
