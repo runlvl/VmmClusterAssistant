@@ -50,20 +50,14 @@ def set_header():
         }}
         .header-text {{
             display: flex;
-            flex-direction: column;
+            align-items: center;
             justify-content: center;
         }}
         .header-title {{
             color: #1C5631;
-            font-size: 24px;
-            margin-bottom: 0;
-            line-height: 1.2;
-        }}
-        .header-subtitle {{
-            color: #1C5631;
-            font-size: 16px;
-            margin-top: 4px;
-            font-weight: normal;
+            font-size: 20px;
+            margin: 0;
+            white-space: nowrap;
         }}
     </style>
     <div class="header-container">
@@ -71,8 +65,7 @@ def set_header():
             <img src="data:image/png;base64,{logo_base64}" class="logo-image">
         </div>
         <div class="header-text">
-            <div class="header-title">Professional Services</div>
-            <div class="header-subtitle">Datacenter & Endpoint</div>
+            <div class="header-title">Professional Services | Datacenter & Endpoint</div>
         </div>
     </div>
     """
