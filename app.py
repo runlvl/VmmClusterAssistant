@@ -70,7 +70,7 @@ def set_header():
             <img src="data:image/png;base64,{logo_base64}" class="logo-image">
         </div>
         <div class="header-text">
-            <div class="header-title"><span style="font-size: 26px;">Professional Services</span> | Datacenter & Endpoint</div>
+            <div class="header-title"><span style="font-size: 30px; font-weight: 700;">Professional Services</span> | Datacenter & Endpoint</div>
         </div>
     </div>
     """
