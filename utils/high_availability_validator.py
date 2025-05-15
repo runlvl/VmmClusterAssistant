@@ -19,8 +19,7 @@ def validate_ha_configuration(config):
     # Check required fields
     required_fields = [
         "enabled", 
-        "cluster",
-        "vmm_service_account"
+        "cluster"
     ]
     
     for field in required_fields:
@@ -46,9 +45,17 @@ def validate_ha_configuration(config):
             if node_count < 2:
                 results["errors"].append("Cluster requires at least 2 nodes")
                 results["status"] = False
-            elif node_count > 16:
-                results["errors"].append("VMM supports a maximum of 16 nodes per cluster")
-                results["status"] = False
+            elif node_count > 64:
+                results["warnings"].append("Large clusters (>16 nodes) may have performance implications")
+                
+        # Check if VMM is used, and if so validate VMM-specific fields
+        if "use_vmm" in config and config["use_vmm"]:
+            # Check VMM-specific required fields when VMM is enabled
+            vmm_required_fields = ["vmm_service_account"]
+            for field in vmm_required_fields:
+                if field not in config or not config[field]:
+                    results["errors"].append(f"Missing required VMM configuration: {field}")
+                    results["status"] = False
         
         # Validate quorum type
         if "quorum_type" in config["cluster"]:
@@ -67,31 +74,34 @@ def validate_ha_configuration(config):
             if "witness_resource" not in config["cluster"]:
                 results["warnings"].append("Witness resource should be specified for the selected witness type")
     
-    # Validate VMM service account
-    if "vmm_service_account" in config:
-        account = config["vmm_service_account"]
+    # VMM-specific validations only if VMM is being used
+    if "use_vmm" in config and config["use_vmm"]:
+        # Validate VMM service account
+        if "vmm_service_account" in config:
+            account = config["vmm_service_account"]
+            
+            # Check domain format (domain\user)
+            if account and "\\" not in account and "@" not in account:
+                results["warnings"].append("VMM service account should be in domain\\username or username@domain format")
         
-        # Check domain format (domain\user)
-        if "\\" not in account and "@" not in account:
-            results["warnings"].append("VMM service account should be in domain\\username or username@domain format")
+        # Validate library high availability
+        if "library_ha" in config and config["library_ha"]:
+            if "library_share" not in config:
+                results["warnings"].append("High availability library share should be specified")
+        
+        # Add VMM-specific recommendations based on best practices
+        if "vmm_db_ha" not in config or not config["vmm_db_ha"]:
+            results["recommendations"].append("Configure high availability for the VMM database")
+        
+        if "dkm_enabled" not in config or not config["dkm_enabled"]:
+            results["recommendations"].append("Configure Distributed Key Management for HA VMM environments")
+        
+        if "library_ha" not in config or not config["library_ha"]:
+            results["recommendations"].append("Configure highly available VMM library")
     
-    # Validate library high availability
-    if "library_ha" in config and config["library_ha"]:
-        if "library_share" not in config:
-            results["warnings"].append("High availability library share should be specified")
-    
-    # Add recommendations based on best practices
+    # General HA recommendations (regardless of VMM)
     if not config.get("enabled", False):
-        results["recommendations"].append("Enable high availability for production VMM environments")
-    
-    if "vmm_db_ha" not in config or not config["vmm_db_ha"]:
-        results["recommendations"].append("Configure high availability for the VMM database")
-    
-    if "dkm_enabled" not in config or not config["dkm_enabled"]:
-        results["recommendations"].append("Configure Distributed Key Management for HA VMM environments")
-    
-    if "library_ha" not in config or not config["library_ha"]:
-        results["recommendations"].append("Configure highly available VMM library")
+        results["recommendations"].append("Enable high availability for production environments")
     
     # If node count is low, recommend additional nodes
     if "cluster" in config and "node_count" in config["cluster"] and config["cluster"]["node_count"] < 3:
@@ -178,29 +188,39 @@ def create_ha_visualization(config):
         nodes.append(f"Node{i+1}")
         G.add_node(f"Node{i+1}")
     
-    # Add cluster resources
-    G.add_node("VMM Service")
-    G.add_node("SQL Database")
+    # Add shared cluster resources
+    G.add_node("Cluster Service")
+    
+    # Add VMM-specific resources if VMM is used
+    if config.get("use_vmm", False):
+        G.add_node("VMM Service")
+        G.add_node("SQL Database")
+        
+        # Add library if HA configured with VMM
+        if config.get("library_ha", False):
+            G.add_node("HA Library")
     
     # Add witness if applicable
     witness_type = config.get("cluster", {}).get("witness_type", None)
-    if witness_type:
+    if witness_type and witness_type != "None":
         G.add_node(f"{witness_type}")
-    
-    # Add library if HA configured
-    if config.get("library_ha", False):
-        G.add_node("HA Library")
     
     # Add edges (connections)
     for node in nodes:
-        G.add_edge(node, "VMM Service")
-        G.add_edge(node, "SQL Database")
+        # All nodes connect to cluster service
+        G.add_edge(node, "Cluster Service")
         
-        if witness_type:
+        # VMM-specific connections
+        if config.get("use_vmm", False):
+            G.add_edge(node, "VMM Service")
+            G.add_edge(node, "SQL Database")
+            
+            if config.get("library_ha", False):
+                G.add_edge(node, "HA Library")
+        
+        # Witness connection if applicable
+        if witness_type and witness_type != "None":
             G.add_edge(node, f"{witness_type}")
-        
-        if config.get("library_ha", False):
-            G.add_edge(node, "HA Library")
     
     # Create positions for better visualization
     pos = {}
