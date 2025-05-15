@@ -12,7 +12,13 @@ def render_security_settings():
     """Render the security settings page."""
     st.title("Security Settings")
     
-    st.write("Configure security settings for your VMM cluster. Proper security configuration is essential for protecting your virtualization environment.")
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Configure security settings for your Hyper-V cluster. Proper security configuration is essential for protecting your virtualization environment.")
+    else:
+        st.write("Configure security settings for your Hyper-V cluster with SCVMM. Proper security configuration is essential for protecting your virtualization environment.")
     
     # Initialize security configuration in session state if not present
     if "configuration" not in st.session_state:
@@ -172,35 +178,65 @@ def render_security_settings():
     # Role-Based Access Control
     st.header("Role-Based Access Control")
     
-    # Define standard roles
-    default_roles = [
-        {
-            "name": "Administrator",
-            "description": "Full control over VMM environment",
-            "permissions": "All permissions"
-        },
-        {
-            "name": "Fabric Administrator",
-            "description": "Manages physical infrastructure",
-            "permissions": "Host, network, and storage management"
-        },
-        {
-            "name": "VM Administrator",
-            "description": "Manages virtual machines",
-            "permissions": "Create, modify, and delete VMs"
-        },
-        {
-            "name": "Read-Only Administrator",
-            "description": "Views but cannot modify environment",
-            "permissions": "View-only access to all components"
-        }
-    ]
+    # Get deployment type
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    # Define standard roles based on deployment type
+    if deployment_type == "hyperv":
+        default_roles = [
+            {
+                "name": "Administrator",
+                "description": "Full control over Hyper-V environment",
+                "permissions": "All permissions"
+            },
+            {
+                "name": "Hyper-V Administrator",
+                "description": "Manages virtual infrastructure",
+                "permissions": "Manage VMs, virtual switches"
+            },
+            {
+                "name": "VM Administrator",
+                "description": "Manages virtual machines",
+                "permissions": "Create, modify, and delete VMs"
+            },
+            {
+                "name": "Read-Only Administrator",
+                "description": "Views but cannot modify environment",
+                "permissions": "View-only access to all components"
+            }
+        ]
+    else:
+        default_roles = [
+            {
+                "name": "Administrator",
+                "description": "Full control over VMM environment",
+                "permissions": "All permissions"
+            },
+            {
+                "name": "Fabric Administrator",
+                "description": "Manages physical infrastructure",
+                "permissions": "Host, network, and storage management"
+            },
+            {
+                "name": "VM Administrator",
+                "description": "Manages virtual machines",
+                "permissions": "Create, modify, and delete VMs"
+            },
+            {
+                "name": "Read-Only Administrator",
+                "description": "Views but cannot modify environment",
+                "permissions": "View-only access to all components"
+            }
+        ]
     
     # Allow customization of default roles
     roles = []
     
     with st.expander("Role-Based Access Control Configuration", expanded=False):
-        st.write("Configure the roles for your VMM environment.")
+        if deployment_type == "hyperv":
+            st.write("Configure the roles for your Hyper-V environment.")
+        else:
+            st.write("Configure the roles for your VMM environment.")
         
         # Table of standard roles
         st.subheader("Standard Roles")
