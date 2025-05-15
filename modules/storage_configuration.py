@@ -223,6 +223,42 @@ def _render_redundancy_options(is_s2d):
     
     return redundancy, mpio_enabled
 
+def _render_filesystem_options(is_s2d, hyper_v_hosts):
+    """Render filesystem options and CSV count selection."""
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if is_s2d:
+            # For S2D, always use ReFS
+            filesystem = "ReFS"
+            st.info("ReFS is the recommended filesystem for Storage Spaces Direct")
+        else:
+            # For other storage types, NTFS is recommended
+            filesystem_options = ["NTFS", "ReFS"]
+            filesystem = st.selectbox(
+                "Filesystem",
+                options=filesystem_options,
+                index=0,
+                help="NTFS is recommended for traditional storage; ReFS is recommended for S2D"
+            )
+    
+    with col2:
+        # Ensure at least 1 CSV per host
+        min_csv_count = hyper_v_hosts
+        csv_count = st.number_input(
+            "Number of CSV Volumes",
+            min_value=min_csv_count,
+            value=min_csv_count,
+            help="Enter the number of Cluster Shared Volumes (CSVs) to create"
+        )
+        
+        if csv_count < hyper_v_hosts:
+            st.error(f"⚠️ You need at least {hyper_v_hosts} CSV volumes (1 per host)")
+        else:
+            st.success(f"✅ Good! You have at least one CSV per host ({csv_count} CSVs for {hyper_v_hosts} hosts)")
+            
+    return filesystem, csv_count
+
 def _render_storage_estimator():
     """
     Render storage estimator UI component and return recommendations.
@@ -524,62 +560,6 @@ def _render_csv_configurations(csv_count, filesystem, redundancy, purpose_option
             })
     
     return csv_volumes
-
-def _render_filesystem_options(is_s2d, hyper_v_hosts):
-    """Render filesystem options and CSV count selection."""
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if is_s2d:
-            # For S2D, ReFS is recommended
-            filesystem = st.selectbox(
-                "Filesystem",
-                options=["ReFS", "NTFS"],
-                index=0,
-                help="ReFS is recommended for S2D deployments"
-            )
-            if filesystem == "ReFS":
-                st.success("✅ ReFS is the recommended filesystem for Storage Spaces Direct")
-        else:
-            # For classical storage, NTFS is recommended
-            filesystem = st.selectbox(
-                "Filesystem",
-                options=["NTFS", "ReFS"],
-                index=0,
-                help="NTFS is recommended for classical storage"
-            )
-            if filesystem == "ReFS":
-                st.warning("⚠️ ReFS is primarily recommended for Storage Spaces Direct. NTFS is the standard for classical storage.")
-    
-    with col2:
-        # CSV per host recommendation
-        min_csv_count = max(hyper_v_hosts, 1)  # At least one CSV per host
-        csv_count = st.number_input(
-            "Number of CSV volumes",
-            min_value=min_csv_count,
-            value=min_csv_count,
-            help=f"Minimum recommended: At least one CSV per host ({hyper_v_hosts} hosts)"
-        )
-        
-        if csv_count < hyper_v_hosts:
-            st.warning(f"⚠️ It's recommended to have at least one CSV per host ({hyper_v_hosts} hosts)")
-        else:
-            st.success(f"✅ Good! You have at least one CSV per host ({csv_count} CSVs for {hyper_v_hosts} hosts)")
-            
-    return filesystem, csv_count
-    
-    # Storage type selection
-    storage_options = ["SAN", "iSCSI", "FC", "SMB", "Storage Spaces Direct (S2D)", "Local", "NVMe"]
-    storage_type = st.selectbox(
-        "Storage Type",
-        options=storage_options,
-        index=0,
-        help="Select the type of storage for your cluster"
-    )
-    
-    # Warning messages for specific storage types
-    if storage_type == "Local":
-        st.warning("⚠️ Local storage is not recommended for production clusters. Consider using shared storage.")
     
     if storage_type == "Storage Spaces Direct (S2D)":
         st.success("✅ Storage Spaces Direct (S2D) is a good choice for hyper-converged infrastructure.")
