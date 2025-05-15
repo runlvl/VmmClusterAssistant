@@ -112,17 +112,12 @@ base_implementation_steps = [
     "Software Requirements",
     "Network Configuration",
     "Storage Configuration",
-    "High Availability",
+    "Security Settings",
     "Generate Implementation Documentation (Final Step)"
 ]
 
-# Define SCVMM-specific steps
-scvmm_steps = [
-    "Security Settings",
-    "Backup & Restore",
-    "Roles & Permissions",
-    "Monitoring"
-]
+# Define SCVMM-specific steps (empty because these steps are removed)
+scvmm_steps = []
 
 # Initialize implementation steps based on deployment type
 deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
@@ -154,8 +149,7 @@ with st.sidebar:
         implementation_steps,
         icons=[
             "info-circle", "download", "cpu", "gear", "diagram-3", "hdd", 
-            "shield-lock", "arrow-repeat", "archive", "people", 
-            "graph-up", "file-earmark-text"
+            "shield-lock", "file-earmark-text"
         ],
         menu_icon="list",
         default_index=st.session_state.current_step,
@@ -462,18 +456,6 @@ elif st.session_state.current_step == 6:
     from modules.security_settings import render_security_settings
     render_security_settings()
 elif st.session_state.current_step == 7:
-    from modules.high_availability import render_high_availability
-    render_high_availability()
-elif st.session_state.current_step == 8:
-    from modules.backup_restore import render_backup_restore
-    render_backup_restore()
-elif st.session_state.current_step == 9:
-    from modules.roles_permissions import render_roles_permissions
-    render_roles_permissions()
-elif st.session_state.current_step == 10:
-    from modules.monitoring import render_monitoring
-    render_monitoring()
-elif st.session_state.current_step == 11:
     from modules.documentation import render_documentation
     render_documentation()
 

@@ -46,7 +46,7 @@ def _save_security_configuration(host_hardening, network_isolation, ipsec_migrat
         st.session_state.completed_steps = set()
     
     st.session_state.completed_steps.add(5)  # Mark security step as completed
-    st.session_state.current_step = 6  # Move to next step (high availability)
+    st.session_state.current_step = 7  # Move to next step (documentation)
     st.rerun()
 
 def _render_host_security():
@@ -466,7 +466,7 @@ def render_security_settings():
             st.rerun()
     
     with col2:
-        next_button = st.button("Next: High Availability", key="next_ha")
+        next_button = st.button("Next: Generate Documentation", key="next_doc")
         if next_button:
             if not validation_results["status"]:
                 st.error("Please correct the security configuration errors before proceeding.")
