@@ -15,7 +15,13 @@ def render_documentation():
     """Render the documentation generation page."""
     st.title("Generate Implementation Documentation (Final Step)")
     
-    st.write("This is the final step of your VMM cluster implementation. Generate comprehensive documentation and PowerShell scripts based on your configuration selections.")
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("This is the final step of your Hyper-V cluster implementation. Generate comprehensive documentation and PowerShell scripts based on your configuration selections.")
+    else:
+        st.write("This is the final step of your Hyper-V cluster with SCVMM implementation. Generate comprehensive documentation and PowerShell scripts based on your configuration selections.")
     
     # Get configuration from session state
     if "configuration" not in st.session_state:
@@ -37,9 +43,12 @@ def render_documentation():
         )
     
     with col2:
+        # Set default project name based on deployment type
+        default_project_name = "Hyper-V Cluster Implementation" if deployment_type == "hyperv" else "Hyper-V Cluster with SCVMM Implementation"
+        
         project_name = st.text_input(
             "Project Name",
-            value="VMM Cluster Implementation",
+            value=default_project_name,
             help="Enter the project name"
         )
     
@@ -220,7 +229,8 @@ def render_documentation():
         
         with st.expander("Show Documentation Preview", expanded=False):
             try:
-                st.components.v1.html(st.session_state.documentation_generated["html"], height=600, scrolling=True)
+                from streamlit.components.v1 import html
+                html(st.session_state.documentation_generated["html"], height=600, scrolling=True)
             except:
                 st.warning("Preview could not be displayed. Please download the HTML file to view the complete documentation.")
     

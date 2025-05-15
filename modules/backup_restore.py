@@ -7,7 +7,13 @@ def render_backup_restore():
     """Render the backup and restore configuration page."""
     st.title("Backup & Restore")
     
-    st.write("Configure backup and restore settings for your VMM cluster. A robust backup strategy is essential for disaster recovery.")
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Configure backup and restore settings for your Hyper-V cluster. A robust backup strategy is essential for disaster recovery.")
+    else:
+        st.write("Configure backup and restore settings for your Hyper-V cluster with SCVMM. A robust backup strategy is essential for disaster recovery.")
     
     # Initialize backup configuration in session state if not present
     if "configuration" not in st.session_state:
@@ -56,67 +62,87 @@ def render_backup_restore():
         st.session_state.current_step = 8  # Move to next step (roles & permissions)
         st.rerun()
     
-    # VMM Database Backup
-    st.header("VMM Database Backup")
+    # Get deployment type to determine which sections to show
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
     
-    col1, col2 = st.columns(2)
+    # VMM-specific backup options (only shown for SCVMM deployment)
+    if deployment_type == "scvmm":
+        # VMM Database Backup
+        st.header("VMM Database Backup")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            vmm_db_method = st.selectbox(
+                "Backup Method",
+                options=["SQL Backup", "SQL Always On", "DPM", "Third-party Tool"],
+                index=0,
+                help="Select the backup method for the VMM database"
+            )
+        
+        with col2:
+            vmm_db_frequency = st.selectbox(
+                "Backup Frequency",
+                options=["Hourly", "Daily", "Weekly"],
+                index=1,
+                help="Select how often to back up the VMM database"
+            )
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            vmm_db_retention = st.selectbox(
+                "Retention Period",
+                options=["7 days", "14 days", "30 days", "60 days", "90 days"],
+                index=2,
+                help="Select how long to keep VMM database backups"
+            )
+        
+        # VMM Library Backup
+        st.header("VMM Library Backup")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            library_method = st.selectbox(
+                "Backup Method",
+                options=["File Backup", "DPM", "Third-party Tool"],
+                index=0,
+                help="Select the backup method for the VMM library"
+            )
+    else:
+        # For Hyper-V only deployment, set default values but don't show UI
+        vmm_db_method = "None"
+        vmm_db_frequency = "None"
+        vmm_db_retention = "None"
+        library_method = "None"
     
-    with col1:
-        vmm_db_method = st.selectbox(
-            "Backup Method",
-            options=["SQL Backup", "SQL Always On", "DPM", "Third-party Tool"],
-            index=0,
-            help="Select the backup method for the VMM database"
-        )
-    
-    with col2:
-        vmm_db_frequency = st.selectbox(
-            "Backup Frequency",
-            options=["Hourly", "Daily", "Weekly"],
-            index=1,
-            help="Select how often to back up the VMM database"
-        )
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        vmm_db_retention = st.selectbox(
-            "Retention Period",
-            options=["7 days", "14 days", "30 days", "60 days", "90 days"],
-            index=2,
-            help="Select how long to keep VMM database backups"
-        )
-    
-    # VMM Library Backup
-    st.header("VMM Library Backup")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        library_method = st.selectbox(
-            "Backup Method",
-            options=["File Backup", "DPM", "Third-party Tool"],
-            index=0,
-            help="Select the backup method for the VMM library"
-        )
-    
-    with col2:
-        library_frequency = st.selectbox(
-            "Backup Frequency",
-            options=["Daily", "Weekly", "Monthly"],
-            index=1,
-            help="Select how often to back up the VMM library"
-        )
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        library_retention = st.selectbox(
-            "Retention Period",
-            options=["7 days", "14 days", "30 days", "60 days", "90 days"],
-            index=2,
-            help="Select how long to keep VMM library backups"
-        )
+    # Library backup options - only shown if SCVMM is selected
+    if deployment_type == "scvmm":
+        # Create columns inside the if block to avoid unbound variables
+        lib_col1, lib_col2 = st.columns(2)
+        
+        with lib_col2:
+            library_frequency = st.selectbox(
+                "Backup Frequency",
+                options=["Daily", "Weekly", "Monthly"],
+                index=1,
+                help="Select how often to back up the VMM library"
+            )
+        
+        lib_col3, lib_col4 = st.columns(2)
+        
+        with lib_col3:
+            library_retention = st.selectbox(
+                "Retention Period",
+                options=["7 days", "14 days", "30 days", "60 days", "90 days"],
+                index=2,
+                help="Select how long to keep VMM library backups"
+            )
+    else:
+        # For Hyper-V only deployment, set default values but don't show UI
+        library_frequency = "None"
+        library_retention = "None"
     
     # Virtual Machine Backup
     st.header("Virtual Machine Backup")
