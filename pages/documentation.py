@@ -136,11 +136,11 @@ def render_documentation():
             help="Generate PowerShell scripts for implementation tasks"
         )
     
-    # Erzeugung der Implementierungsdokumentation und Skripte
-    st.header("Erzeugung der Implementierungsdokumentation und PowerShell-Skripte")
+    # Generate Implementation Documentation and Scripts
+    st.header("Generate Implementation Documentation and PowerShell Scripts")
     
-    if st.button("VMM-Implementierungsdokumentation und PowerShell-Skripte erstellen", key="generate_docs"):
-        with st.spinner("Dokumentation und PowerShell-Skripte werden generiert..."):
+    if st.button("Create VMM Implementation Documentation and PowerShell Scripts", key="generate_docs"):
+        with st.spinner("Generating Documentation and PowerShell Scripts..."):
             # Generate HTML documentation
             html_documentation = generate_implementation_documentation(config)
             
@@ -157,27 +157,27 @@ def render_documentation():
             st.session_state.documentation_generated["html"] = html_documentation
             st.session_state.documentation_generated["scripts"] = scripts
             
-            st.success("VMM-Implementierungsdokumentation und PowerShell-Skripte wurden erfolgreich erstellt! Bitte nutzen Sie die Download-Buttons unten, um die Dateien herunterzuladen.")
+            st.success("VMM Implementation Documentation and PowerShell Scripts have been successfully created! Please use the download buttons below to download the files.")
     
-    # Download der Dokumentation und Skripte
+    # Download Documentation and Scripts
     if "documentation_generated" in st.session_state:
-        st.header("Download der VMM-Implementierungsdateien")
+        st.header("Download VMM Implementation Files")
         
         col1, col2 = st.columns(2)
         
         with col1:
             # HTML Documentation
             if "html" in st.session_state.documentation_generated:
-                doc_filename = f"{project_name.replace(' ', '_')}_VMM_Implementierungsdokumentation.html"
+                doc_filename = f"{project_name.replace(' ', '_')}_VMM_Implementation_Documentation.html"
                 
                 # Create download button for HTML
                 html_content = st.session_state.documentation_generated["html"]
                 st.download_button(
-                    label="Implementierungsdokumentation (HTML) herunterladen",
+                    label="Download Implementation Documentation (HTML)",
                     data=html_content,
                     file_name=doc_filename,
                     mime="text/html",
-                    help="Detaillierte HTML-Dokumentation mit allen Implementierungsschritten und Diagrammen"
+                    help="Detailed HTML documentation with all implementation steps and diagrams"
                 )
             
             # PowerShell Scripts
