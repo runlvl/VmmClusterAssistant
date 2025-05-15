@@ -10,7 +10,13 @@ def render_software_requirements():
     # Get software requirements data
     sw_requirements = get_software_requirements()
     
-    st.write("Before implementing a VMM cluster, ensure your software environment meets the following requirements.")
+    # Check deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Before implementing a Hyper-V cluster, ensure your software environment meets the following requirements.")
+    else:
+        st.write("Before implementing a Hyper-V cluster with SCVMM, ensure your software environment meets the following requirements.")
     
     # Function to update session state when requirements are confirmed
     def confirm_software_configuration():
@@ -67,57 +73,69 @@ def render_software_requirements():
     st.table(os_req_df)
     
     # VMM and SQL Version
-    st.header("System Center and SQL Server Requirements")
+    # Get deployment type
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        vmm_version = st.selectbox(
-            "VMM Version",
-            options=["System Center 2022", "System Center 2019", "System Center 2016"],
-            index=0,
-            help="Select the System Center VMM version"
-        )
-    
-    with col2:
-        sql_version = st.selectbox(
-            "SQL Server Version",
-            options=["SQL Server 2022", "SQL Server 2019", "SQL Server 2017", "SQL Server 2016"],
-            index=0,
-            help="Select the SQL Server version for the VMM database"
-        )
-    
-    # SQL Server settings
-    st.subheader("SQL Server Configuration")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        sql_server = st.text_input(
-            "SQL Server Name",
-            value="SQLSERVER",
-            help="Enter the SQL Server name"
-        )
-    
-    with col2:
-        sql_instance = st.text_input(
-            "SQL Instance",
-            value="MSSQLSERVER",
-            help="Enter the SQL instance name (MSSQLSERVER for default instance)"
-        )
-    
-    # Additional software
-    st.header("Additional Required Software")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        adk_version = st.selectbox(
-            "Windows ADK Version",
-            options=["Windows 11 ADK", "Windows 10 ADK"],
-            index=0,
-            help="Select the Windows Assessment and Deployment Kit (ADK) version"
-        )
+    # Only show SCVMM related options if the deployment type includes it
+    if deployment_type == "scvmm":
+        st.header("System Center and SQL Server Requirements")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            vmm_version = st.selectbox(
+                "SCVMM Version",
+                options=["System Center 2022", "System Center 2019"],
+                index=0,
+                help="Select the System Center VMM version"
+            )
+        
+        with col2:
+            sql_version = st.selectbox(
+                "SQL Server Version",
+                options=["SQL Server 2022", "SQL Server 2019"],
+                index=0,
+                help="Select the SQL Server version for the VMM database"
+            )
+        
+        # SQL Server settings
+        st.subheader("SQL Server Configuration")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            sql_server = st.text_input(
+                "SQL Server Name",
+                value="SQLSERVER",
+                help="Enter the SQL Server name"
+            )
+        
+        with col2:
+            sql_instance = st.text_input(
+                "SQL Instance",
+                value="MSSQLSERVER",
+                help="Enter the SQL instance name (MSSQLSERVER for default instance)"
+            )
+        
+        # Additional software for SCVMM
+        st.header("Additional SCVMM Requirements")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            adk_version = st.selectbox(
+                "Windows ADK Version",
+                options=["Windows 11 ADK", "Windows 10 ADK"],
+                index=0,
+                help="Select the Windows Assessment and Deployment Kit (ADK) version"
+            )
+    else:
+        # Set default values for SCVMM components when not using SCVMM
+        vmm_version = "None"
+        sql_version = "None"
+        sql_server = ""
+        sql_instance = ""
+        adk_version = "None"
     
     # Required Windows Features
     st.header("Required Windows Features")
@@ -139,71 +157,83 @@ def render_software_requirements():
         mpio = st.checkbox("Multipath I/O", value=True, help="Required for redundant storage connectivity")
         data_deduplication = st.checkbox("Data Deduplication", value=False, help="Optional for storage efficiency")
     
-    # Account configuration
-    st.header("Service Accounts and Container Configuration")
+    # Account configuration - only show for SCVMM deployment
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        service_account = st.text_input(
-            "VMM Service Account",
-            value="DOMAIN\\svc_vmm",
-            help="Enter the service account for VMM (format: DOMAIN\\username)"
+    if deployment_type == "scvmm":
+        st.header("SCVMM Service Accounts and Container Configuration")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            service_account = st.text_input(
+                "VMM Service Account",
+                value="DOMAIN\\svc_vmm",
+                help="Enter the service account for VMM (format: DOMAIN\\username)"
+            )
+            
+            if "\\" not in service_account and "@" not in service_account:
+                st.warning("Service account should be in domain\\username or username@domain format")
+        
+        with col2:
+            dkm_container = st.text_input(
+                "DKM Container Name",
+                value="VMM_DKM",
+                help="Enter the name for the Distributed Key Management container in Active Directory"
+            )
+        
+        # VMM Server Name
+        st.subheader("VMM Server Configuration")
+        vmm_server_name = st.text_input(
+            "VMM Server Name",
+            value="VMMSERVER",
+            help="Enter the name for the VMM server (for cluster configuration)"
         )
         
-        if "\\" not in service_account and "@" not in service_account:
-            st.warning("Service account should be in domain\\username or username@domain format")
-    
-    with col2:
-        dkm_container = st.text_input(
-            "DKM Container Name",
-            value="VMM_DKM",
-            help="Enter the name for the Distributed Key Management container in Active Directory"
-        )
-    
-    # VMM Server Name
-    st.subheader("VMM Server Configuration")
-    vmm_server_name = st.text_input(
-        "VMM Server Name",
-        value="VMMSERVER",
-        help="Enter the name for the VMM server (for cluster configuration)"
-    )
-    
-    if len(vmm_server_name) > 15:
-        st.error("VMM server name exceeds 15 characters. Please shorten the name.")
+        if len(vmm_server_name) > 15:
+            st.error("VMM server name exceeds 15 characters. Please shorten the name.")
+    else:
+        # Default values for non-SCVMM deployment
+        service_account = ""
+        dkm_container = ""
+        vmm_server_name = ""
     
     # Software validation visualization
-    st.header("Software Compatibility Matrix")
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
     
-    # Create compatibility matrix
-    compatibility = {
-        "Component Pair": [
-            "OS + VMM",
-            "OS + SQL",
-            "VMM + SQL",
-            "OS + ADK"
-        ],
-        "Status": [
-            "Compatible" if "2022" in vmm_version and "2022" in os_version or "2019" in vmm_version and "2019" in os_version else "Check Compatibility",
-            "Compatible" if "2022" in sql_version and "2022" in os_version or "2019" in sql_version and "2019" in os_version else "Check Compatibility",
-            "Compatible" if "2022" in sql_version and "2022" in vmm_version or "2019" in sql_version and "2019" in vmm_version else "Check Compatibility",
-            "Compatible" if "11" in adk_version and "2022" in os_version or "10" in adk_version and "2019" in os_version else "Check Compatibility"
-        ]
-    }
-    
-    compat_df = pd.DataFrame(compatibility)
-    
-    # Apply conditional formatting
-    def highlight_compatibility(val):
-        if val == "Compatible":
-            return 'background-color: #CCFFCC'
-        elif val == "Check Compatibility":
-            return 'background-color: #FFFFCC'
-        else:
-            return 'background-color: #FFCCCC'
-    
-    styled_df = compat_df.style.applymap(highlight_compatibility, subset=['Status'])
-    st.table(styled_df)
+    # Only show compatibility matrix for SCVMM deployment
+    if deployment_type == "scvmm":
+        st.header("Software Compatibility Matrix")
+        
+        # Create compatibility matrix
+        compatibility = {
+            "Component Pair": [
+                "OS + VMM",
+                "OS + SQL",
+                "VMM + SQL",
+                "OS + ADK"
+            ],
+            "Status": [
+                "Compatible" if "2022" in vmm_version and "2022" in os_version or "2019" in vmm_version and "2019" in os_version else "Check Compatibility",
+                "Compatible" if "2022" in sql_version and "2022" in os_version or "2019" in sql_version and "2019" in os_version else "Check Compatibility",
+                "Compatible" if "2022" in sql_version and "2022" in vmm_version or "2019" in sql_version and "2019" in vmm_version else "Check Compatibility",
+                "Compatible" if "11" in adk_version and "2022" in os_version or "10" in adk_version and "2019" in os_version else "Check Compatibility"
+            ]
+        }
+        
+        compat_df = pd.DataFrame(compatibility)
+        
+        # Apply conditional formatting
+        def highlight_compatibility(val):
+            if val == "Compatible":
+                return 'background-color: #CCFFCC'
+            elif val == "Check Compatibility":
+                return 'background-color: #FFFFCC'
+            else:
+                return 'background-color: #FFCCCC'
+        
+        styled_df = compat_df.style.applymap(highlight_compatibility, subset=['Status'])
+        st.table(styled_df)
     
     # Create feature visualization
     features = ["Hyper-V", "Failover Clustering", "Multipath I/O", "Data Deduplication"]
