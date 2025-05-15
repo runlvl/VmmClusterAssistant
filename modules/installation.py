@@ -5,14 +5,25 @@ from pathlib import Path
 def render_installation_documentation():
     """Render the installation documentation page."""
     
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+
     st.title("Installation Guide")
     
-    st.markdown("""
-    ## VMM Cluster Implementation Tool Installation Guide
-    
-    This page provides information on how to install and set up the VMM Cluster Implementation Tool
-    in your environment.
-    """)
+    if deployment_type == "hyperv":
+        st.markdown("""
+        ## Hyper-V Cluster Implementation Tool Installation Guide
+        
+        This page provides information on how to install and set up the Hyper-V Cluster Implementation Tool
+        in your environment.
+        """)
+    else:
+        st.markdown("""
+        ## Hyper-V Cluster with SCVMM Implementation Tool Installation Guide
+        
+        This page provides information on how to install and set up the Hyper-V Cluster with SCVMM Implementation Tool
+        in your environment.
+        """)
     
     # Check if the installation guide exists
     installation_guide_path = Path(__file__).parent.parent / "docs" / "installation_guide.md"
@@ -80,6 +91,10 @@ def render_installation_documentation():
     # Offline installation options
     st.header("Offline Installation")
     
+    # Get deployment type to customize file name
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    file_prefix = "hyperv" if deployment_type == "hyperv" else "hyperv_scvmm"
+    
     if st.button("Generate Offline Installation Script"):
         from utils.dependency_checker import get_offline_installation_script
         
@@ -94,6 +109,6 @@ def render_installation_documentation():
         st.download_button(
             label="Download Installation Script",
             data=script,
-            file_name="vmm_tool_offline_install.sh",
+            file_name=f"{file_prefix}_tool_offline_install.sh",
             mime="text/plain"
         )
