@@ -168,12 +168,64 @@ with st.sidebar:
 
 # Main content area
 def render_introduction():
-    st.title("VMM Cluster Implementation Tool")
-    st.markdown("""
-    ## Welcome to the VMM Cluster Implementation Tool!
+    st.title("Hyper-V Cluster Implementation Tool")
     
-    This wizard will guide you through the process of setting up a System Center Virtual Machine Manager (VMM) cluster
-    with best practices, automated validation, and comprehensive documentation.
+    # Add deployment type selection
+    st.header("Select Deployment Type")
+    
+    deployment_options = {
+        "hyperv": "Hyper-V Cluster Only",
+        "scvmm": "Hyper-V Cluster with System Center VMM"
+    }
+    
+    # Create columns for the deployment type selection
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("### Hyper-V Cluster Only")
+        st.markdown("""
+        - Simplified deployment
+        - Core clustering functionality
+        - Faster implementation
+        - No additional licensing costs
+        """)
+        hyperv_selected = st.button("Select Hyper-V Only", key="hyperv_select")
+    
+    with col2:
+        st.info("### With System Center VMM")
+        st.markdown("""
+        - Advanced management features
+        - Centralized administration
+        - Additional complexity
+        - Requires SQL Server
+        """)
+        scvmm_selected = st.button("Select with SCVMM", key="scvmm_select")
+    
+    # Handle deployment type selection
+    if hyperv_selected:
+        st.session_state.configuration["deployment_type"] = "hyperv"
+        st.success("✅ Hyper-V Cluster Only deployment selected")
+    
+    if scvmm_selected:
+        st.session_state.configuration["deployment_type"] = "scvmm"
+        st.success("✅ Hyper-V Cluster with SCVMM deployment selected")
+    
+    # Display current selection
+    current_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    st.markdown(f"**Current selection:** {deployment_options[current_type]}")
+    
+    # Welcome message based on deployment type
+    if current_type == "hyperv":
+        welcome_title = "Welcome to the Hyper-V Cluster Implementation Tool!"
+        welcome_desc = "This wizard will guide you through the process of setting up a Hyper-V cluster with best practices, automated validation, and comprehensive documentation."
+    else:
+        welcome_title = "Welcome to the Hyper-V Cluster with SCVMM Implementation Tool!"
+        welcome_desc = "This wizard will guide you through the process of setting up a Hyper-V cluster with System Center Virtual Machine Manager (SCVMM), including best practices, automated validation, and comprehensive documentation."
+    
+    st.markdown(f"""
+    ## {welcome_title}
+    
+    {welcome_desc}
     
     ### Key Features:
     - Step-by-step implementation guidance
@@ -191,24 +243,35 @@ def render_introduction():
     Let's begin by clicking on the "Hardware Requirements" step in the sidebar.
     """)
     
-    # Display overview of VMM cluster architecture
-    st.subheader("VMM Cluster Architecture Overview")
+    # Display overview of cluster architecture based on deployment type
+    current_type = st.session_state.configuration.get("deployment_type", "hyperv")
     
-    # Create a simple graph to visualize VMM architecture
+    if current_type == "hyperv":
+        st.subheader("Hyper-V Cluster Architecture Overview")
+    else:
+        st.subheader("Hyper-V Cluster with SCVMM Architecture Overview")
+    
+    # Create a simple graph to visualize the architecture
     G = nx.Graph()
     
     # Add nodes
-    nodes = ["VMM Server", "SQL Server", "Hyper-V Host 1", "Hyper-V Host 2", 
-             "Shared Storage", "Management Network", "VM Network", "Migration Network"]
+    if current_type == "hyperv":
+        # Hyper-V only deployment
+        nodes = ["Hyper-V Host 1", "Hyper-V Host 2", 
+                "Shared Storage", "Management Network", "VM Network", "Migration Network"]
+    else:
+        # SCVMM deployment
+        nodes = ["VMM Server", "SQL Server", "Hyper-V Host 1", "Hyper-V Host 2", 
+                "Shared Storage", "Management Network", "VM Network", "Migration Network"]
     
     for node in nodes:
         G.add_node(node)
     
     # Add edges
-    edges = [
-        ("VMM Server", "SQL Server"),
-        ("VMM Server", "Management Network"),
-        ("SQL Server", "Management Network"),
+    edges = []
+    
+    # Common edges for both deployment types
+    common_edges = [
         ("Hyper-V Host 1", "Management Network"),
         ("Hyper-V Host 2", "Management Network"),
         ("Hyper-V Host 1", "VM Network"),
@@ -219,19 +282,37 @@ def render_introduction():
         ("Hyper-V Host 2", "Shared Storage")
     ]
     
+    edges.extend(common_edges)
+    
+    # Add SCVMM-specific edges if applicable
+    if current_type == "scvmm":
+        scvmm_edges = [
+            ("VMM Server", "SQL Server"),
+            ("VMM Server", "Management Network"),
+            ("SQL Server", "Management Network")
+        ]
+        edges.extend(scvmm_edges)
+    
     G.add_edges_from(edges)
     
     # Create positions for nodes
+    # Common positions for both deployment types
     pos = {
-        "VMM Server": [0, 2],
-        "SQL Server": [2, 2],
         "Hyper-V Host 1": [0, 0],
         "Hyper-V Host 2": [2, 0],
         "Shared Storage": [1, -1],
-        "Management Network": [1, 3],
+        "Management Network": [1, 1.5 if current_type == "hyperv" else 3],
         "VM Network": [3, 1],
         "Migration Network": [-1, 1]
     }
+    
+    # Add SCVMM-specific positions if applicable
+    if current_type == "scvmm":
+        scvmm_pos = {
+            "VMM Server": [0, 2],
+            "SQL Server": [2, 2]
+        }
+        pos.update(scvmm_pos)
     
     # Create edge traces
     edge_x = []
@@ -280,14 +361,20 @@ def render_introduction():
                        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                        height=500,
-                       plot_bgcolor='rgba(0,0,0,0)',
+                       title=f"{'Standard' if current_type == 'hyperv' else 'Advanced with SCVMM'} Cluster Configuration",
+                       plot_bgcolor='rgba(240,240,240,0.3)',
                        paper_bgcolor='rgba(0,0,0,0)',
                    ))
     
     st.plotly_chart(fig, use_container_width=True)
     
     # Best Practices Summary
-    st.subheader("VMM Cluster Implementation Best Practices")
+    current_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if current_type == "hyperv":
+        st.subheader("Hyper-V Cluster Implementation Best Practices")
+    else:
+        st.subheader("Hyper-V Cluster with SCVMM Implementation Best Practices")
     
     best_practices = get_best_practices()
     categories = list(best_practices.keys())
