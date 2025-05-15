@@ -1024,7 +1024,8 @@ def generate_implementation_documentation(config):
         </table>
         
         <div class="footer">
-            <p>
+            <p style="color: #1C5631; font-weight: bold;">
+                © 2025 Bechtle Austria GmbH - <span style="font-size: 1.1em;">Professional Services</span> | Datacenter & Endpoint<br>
                 VMM Cluster Implementation Documentation<br>
                 Generated on {{ generation_date }}<br>
                 Version 1.0
