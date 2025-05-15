@@ -233,15 +233,20 @@ def create_ha_visualization(config):
         angle = i * angle_step
         pos[f"Node{i+1}"] = [radius * 1.5 * math.cos(angle), radius * math.sin(angle)]
     
-    # Position resources in the center
-    pos["VMM Service"] = [0, 0]
-    pos["SQL Database"] = [0, -1.5]
+    # Position cluster service in the center
+    pos["Cluster Service"] = [0, 0]
     
-    if witness_type:
+    # Position VMM-specific resources if used
+    if config.get("use_vmm", False):
+        pos["VMM Service"] = [0, -1.5]
+        pos["SQL Database"] = [0, -2.5]
+        
+        if config.get("library_ha", False):
+            pos["HA Library"] = [-2, -1]
+    
+    # Position witness if applicable
+    if witness_type and witness_type != "None":
         pos[f"{witness_type}"] = [2, -1]
-    
-    if config.get("library_ha", False):
-        pos["HA Library"] = [-2, -1]
     
     # Create edge traces
     edge_x = []
@@ -273,10 +278,31 @@ def create_ha_visualization(config):
         )
     )
     
+    # Set up the services to include in the visualization
+    vmm_services = []
+    if config.get("use_vmm", False):
+        vmm_services = ["VMM Service", "SQL Database"]
+    
+    # Cluster service visualization
+    node_trace_cluster_service = go.Scatter(
+        x=[pos["Cluster Service"][0]],
+        y=[pos["Cluster Service"][1]],
+        text=["Cluster Service"],
+        mode='markers+text',
+        textposition="bottom center",
+        hoverinfo='text',
+        marker=dict(
+            color='#1C5631',  # Bechtle green for cluster service
+            size=35,
+            line_width=2
+        )
+    )
+    
+    # VMM services visualization (only if VMM is used)
     node_trace_services = go.Scatter(
-        x=[pos[node][0] for node in G.nodes() if node in ["VMM Service", "SQL Database"]],
-        y=[pos[node][1] for node in G.nodes() if node in ["VMM Service", "SQL Database"]],
-        text=[node for node in G.nodes() if node in ["VMM Service", "SQL Database"]],
+        x=[pos[node][0] for node in G.nodes() if node in vmm_services],
+        y=[pos[node][1] for node in G.nodes() if node in vmm_services],
+        text=[node for node in G.nodes() if node in vmm_services],
         mode='markers+text',
         textposition="bottom center",
         hoverinfo='text',
@@ -287,10 +313,18 @@ def create_ha_visualization(config):
         )
     )
     
+    # Other resources (witness, library)
+    other_resources = []
+    for node in G.nodes():
+        if (node not in vmm_services and 
+            node != "Cluster Service" and 
+            not node.startswith("Node")):
+            other_resources.append(node)
+    
     node_trace_other = go.Scatter(
-        x=[pos[node][0] for node in G.nodes() if node not in ["VMM Service", "SQL Database"] and not node.startswith("Node")],
-        y=[pos[node][1] for node in G.nodes() if node not in ["VMM Service", "SQL Database"] and not node.startswith("Node")],
-        text=[node for node in G.nodes() if node not in ["VMM Service", "SQL Database"] and not node.startswith("Node")],
+        x=[pos[node][0] for node in other_resources],
+        y=[pos[node][1] for node in other_resources],
+        text=other_resources,
         mode='markers+text',
         textposition="bottom center",
         hoverinfo='text',
@@ -302,24 +336,38 @@ def create_ha_visualization(config):
     )
     
     # Create the figure with all traces
-    fig = go.Figure(data=[edge_trace, node_trace_cluster, node_trace_services, node_trace_other],
+    traces = [edge_trace, node_trace_cluster, node_trace_cluster_service]
+    
+    # Only add services trace if VMM is used and there are services to show
+    if config.get("use_vmm", False) and vmm_services:
+        traces.append(node_trace_services)
+    
+    # Only add other resources trace if there are other resources to show
+    if other_resources:
+        traces.append(node_trace_other)
+    
+    # Use a cluster-focused title
+    cluster_name = config.get('cluster', {}).get('name', 'Hyper-V Cluster')
+    
+    fig = go.Figure(data=traces,
                    layout=go.Layout(
-                       title=f"High Availability Configuration: {config.get('cluster', {}).get('name', 'VMM Cluster')}",
+                       title=f"High Availability Configuration: {cluster_name}",
                        showlegend=False,
                        hovermode='closest',
                        margin=dict(b=20,l=5,r=5,t=40),
                        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                        height=600,
-                       width=800
+                       width=800,
+                       plot_bgcolor='rgba(240,240,240,0.8)'  # Light gray background
                    ))
     
     # Add annotations for quorum information
     quorum_type = config.get("cluster", {}).get("quorum_type", "Not specified")
     fig.add_annotation(
-        x=pos["VMM Service"][0],
-        y=pos["VMM Service"][1] - 0.5,
-        text=f"Quorum: {quorum_type}",
+        x=pos["Cluster Service"][0],
+        y=pos["Cluster Service"][1] - 0.7,
+        text=f"Quorum Type: {quorum_type}",
         showarrow=False,
         font=dict(size=12)
     )
