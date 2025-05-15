@@ -3,19 +3,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
-def render_backup_restore():
-    """Render the backup and restore configuration page."""
-    st.title("Backup & Restore")
-    
-    # Get deployment type from session state
-    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
-    
-    if deployment_type == "hyperv":
-        st.write("Configure backup and restore settings for your Hyper-V cluster. A robust backup strategy is essential for disaster recovery.")
-    else:
-        st.write("Configure backup and restore settings for your Hyper-V cluster with SCVMM. A robust backup strategy is essential for disaster recovery.")
-    
-    # Initialize backup configuration in session state if not present
+# Helper functions for backup and restore configuration
+
+def _initialize_backup_config():
+    """Initialize backup configuration in session state if not present."""
     if "configuration" not in st.session_state:
         st.session_state.configuration = {}
     
@@ -34,117 +25,108 @@ def render_backup_restore():
             "host_frequency": "Weekly",
             "host_retention": "30 days"
         }
+
+def _save_backup_configuration(vmm_db_method, vmm_db_frequency, vmm_db_retention, 
+                             library_method, library_frequency, library_retention, 
+                             vm_method, vm_frequency, vm_retention, 
+                             host_method, host_frequency, host_retention, 
+                             backup_location, encryption_enabled, notification_email):
+    """Save backup configuration to session state."""
+    st.session_state.configuration["backup"] = {
+        "vmm_db_method": vmm_db_method,
+        "vmm_db_frequency": vmm_db_frequency,
+        "vmm_db_retention": vmm_db_retention,
+        "library_method": library_method,
+        "library_frequency": library_frequency,
+        "library_retention": library_retention,
+        "vm_method": vm_method,
+        "vm_frequency": vm_frequency,
+        "vm_retention": vm_retention,
+        "host_method": host_method,
+        "host_frequency": host_frequency,
+        "host_retention": host_retention,
+        "backup_location": backup_location,
+        "encryption_enabled": encryption_enabled,
+        "notification_email": notification_email
+    }
     
-    # Function to update session state when backup configuration is confirmed
-    def confirm_backup_configuration():
-        st.session_state.configuration["backup"] = {
-            "vmm_db_method": vmm_db_method,
-            "vmm_db_frequency": vmm_db_frequency,
-            "vmm_db_retention": vmm_db_retention,
-            "library_method": library_method,
-            "library_frequency": library_frequency,
-            "library_retention": library_retention,
-            "vm_method": vm_method,
-            "vm_frequency": vm_frequency,
-            "vm_retention": vm_retention,
-            "host_method": host_method,
-            "host_frequency": host_frequency,
-            "host_retention": host_retention,
-            "backup_location": backup_location,
-            "encryption_enabled": encryption_enabled,
-            "notification_email": notification_email
-        }
-        
-        if "completed_steps" not in st.session_state:
-            st.session_state.completed_steps = set()
-        
-        st.session_state.completed_steps.add(7)  # Mark backup step as completed
-        st.session_state.current_step = 8  # Move to next step (roles & permissions)
-        st.rerun()
+    if "completed_steps" not in st.session_state:
+        st.session_state.completed_steps = set()
     
-    # Get deployment type to determine which sections to show
-    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    st.session_state.completed_steps.add(7)  # Mark backup step as completed
+    st.session_state.current_step = 8  # Move to next step (roles & permissions)
+    st.rerun()
+
+def _render_vmm_db_backup():
+    """Render VMM database backup configuration options."""
+    st.header("VMM Database Backup")
     
-    # VMM-specific backup options (only shown for SCVMM deployment)
-    if deployment_type == "scvmm":
-        # VMM Database Backup
-        st.header("VMM Database Backup")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            vmm_db_method = st.selectbox(
-                "Backup Method",
-                options=["SQL Backup", "SQL Always On", "DPM", "Third-party Tool"],
-                index=0,
-                help="Select the backup method for the VMM database"
-            )
-        
-        with col2:
-            vmm_db_frequency = st.selectbox(
-                "Backup Frequency",
-                options=["Hourly", "Daily", "Weekly"],
-                index=1,
-                help="Select how often to back up the VMM database"
-            )
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            vmm_db_retention = st.selectbox(
-                "Retention Period",
-                options=["7 days", "14 days", "30 days", "60 days", "90 days"],
-                index=2,
-                help="Select how long to keep VMM database backups"
-            )
-        
-        # VMM Library Backup
-        st.header("VMM Library Backup")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            library_method = st.selectbox(
-                "Backup Method",
-                options=["File Backup", "DPM", "Third-party Tool"],
-                index=0,
-                help="Select the backup method for the VMM library"
-            )
-    else:
-        # For Hyper-V only deployment, set default values but don't show UI
-        vmm_db_method = "None"
-        vmm_db_frequency = "None"
-        vmm_db_retention = "None"
-        library_method = "None"
+    col1, col2 = st.columns(2)
     
-    # Library backup options - only shown if SCVMM is selected
-    if deployment_type == "scvmm":
-        # Create columns inside the if block to avoid unbound variables
-        lib_col1, lib_col2 = st.columns(2)
-        
-        with lib_col2:
-            library_frequency = st.selectbox(
-                "Backup Frequency",
-                options=["Daily", "Weekly", "Monthly"],
-                index=1,
-                help="Select how often to back up the VMM library"
-            )
-        
-        lib_col3, lib_col4 = st.columns(2)
-        
-        with lib_col3:
-            library_retention = st.selectbox(
-                "Retention Period",
-                options=["7 days", "14 days", "30 days", "60 days", "90 days"],
-                index=2,
-                help="Select how long to keep VMM library backups"
-            )
-    else:
-        # For Hyper-V only deployment, set default values but don't show UI
-        library_frequency = "None"
-        library_retention = "None"
+    with col1:
+        vmm_db_method = st.selectbox(
+            "Backup Method",
+            options=["SQL Backup", "SQL Always On", "DPM", "Third-party Tool"],
+            index=0,
+            help="Select the backup method for the VMM database"
+        )
     
-    # Virtual Machine Backup
+    with col2:
+        vmm_db_frequency = st.selectbox(
+            "Backup Frequency",
+            options=["Hourly", "Daily", "Weekly"],
+            index=1,
+            help="Select how often to back up the VMM database"
+        )
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        vmm_db_retention = st.selectbox(
+            "Retention Period",
+            options=["7 days", "14 days", "30 days", "60 days", "90 days"],
+            index=2,
+            help="Select how long to keep VMM database backups"
+        )
+    
+    return vmm_db_method, vmm_db_frequency, vmm_db_retention
+
+def _render_vmm_library_backup():
+    """Render VMM library backup configuration options."""
+    st.header("VMM Library Backup")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        library_method = st.selectbox(
+            "Backup Method",
+            options=["File Backup", "DPM", "Third-party Tool"],
+            index=0,
+            help="Select the backup method for the VMM library"
+        )
+    
+    with col2:
+        library_frequency = st.selectbox(
+            "Backup Frequency",
+            options=["Daily", "Weekly", "Monthly"],
+            index=1,
+            help="Select how often to back up the VMM library"
+        )
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        library_retention = st.selectbox(
+            "Retention Period",
+            options=["7 days", "14 days", "30 days", "60 days", "90 days"],
+            index=2,
+            help="Select how long to keep VMM library backups"
+        )
+    
+    return library_method, library_frequency, library_retention
+
+def _render_vm_backup():
+    """Render virtual machine backup configuration options."""
     st.header("Virtual Machine Backup")
     
     col1, col2 = st.columns(2)
@@ -175,7 +157,10 @@ def render_backup_restore():
             help="Select how long to keep virtual machine backups"
         )
     
-    # Host Configuration Backup
+    return vm_method, vm_frequency, vm_retention
+
+def _render_host_backup():
+    """Render host configuration backup options."""
     st.header("Host Configuration Backup")
     
     col1, col2 = st.columns(2)
@@ -206,7 +191,10 @@ def render_backup_restore():
             help="Select how long to keep host configuration backups"
         )
     
-    # Backup Storage Configuration
+    return host_method, host_frequency, host_retention
+
+def _render_backup_storage():
+    """Render backup storage configuration options."""
     st.header("Backup Storage Configuration")
     
     backup_location = st.selectbox(
@@ -235,7 +223,10 @@ def render_backup_restore():
         help="Encrypt backup data for enhanced security"
     )
     
-    # Backup Notifications
+    return backup_location, encryption_enabled
+
+def _render_backup_notifications():
+    """Render backup notification options."""
     st.header("Backup Notifications")
     
     notification_email = st.text_input(
@@ -244,7 +235,10 @@ def render_backup_restore():
         help="Email address for backup notifications"
     )
     
-    # Recovery Testing Schedule
+    return notification_email
+
+def _render_recovery_testing():
+    """Render recovery testing configuration options."""
     st.header("Recovery Testing Schedule")
     
     with st.expander("Recovery Testing Configuration", expanded=False):
@@ -272,8 +266,10 @@ def render_backup_restore():
             index=1,
             help="How often to test recovery procedures"
         )
-    
-    # Backup visualization
+
+def _create_backup_schedule_visualization(vmm_db_frequency, library_frequency, vm_frequency, host_frequency,
+                                         vmm_db_retention, library_retention, vm_retention, host_retention):
+    """Create and display visualization of backup schedule."""
     st.header("Backup Schedule Visualization")
     
     # Create backup schedule data
@@ -322,8 +318,9 @@ def render_backup_restore():
                   height=400)
     
     st.plotly_chart(fig2)
-    
-    # Recovery procedures
+
+def _render_recovery_procedures():
+    """Render recovery procedures documentation."""
     st.header("Recovery Procedures")
     
     with st.expander("VMM Server Recovery", expanded=True):
@@ -364,8 +361,9 @@ def render_backup_restore():
         
         For detailed VM recovery steps, refer to your backup solution's documentation.
         """)
-    
-    # Backup and recovery best practices
+
+def _render_best_practices():
+    """Render backup and recovery best practices."""
     st.header("Backup & Recovery Best Practices")
     
     best_practices = [
@@ -383,6 +381,64 @@ def render_backup_restore():
     
     for practice in best_practices:
         st.markdown(f"- {practice}")
+
+def render_backup_restore():
+    """Render the backup and restore configuration page."""
+    st.title("Backup & Restore")
+    
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Configure backup and restore settings for your Hyper-V cluster. A robust backup strategy is essential for disaster recovery.")
+    else:
+        st.write("Configure backup and restore settings for your Hyper-V cluster with SCVMM. A robust backup strategy is essential for disaster recovery.")
+    
+    # Initialize backup configuration in session state if not present
+    _initialize_backup_config()
+    
+    # Default values for non-VMM deployment
+    vmm_db_method = "None"
+    vmm_db_frequency = "None"
+    vmm_db_retention = "None"
+    library_method = "None"
+    library_frequency = "None"
+    library_retention = "None"
+    
+    # VMM-specific backup options (only shown for SCVMM deployment)
+    if deployment_type == "scvmm":
+        # VMM Database Backup
+        vmm_db_method, vmm_db_frequency, vmm_db_retention = _render_vmm_db_backup()
+        
+        # VMM Library Backup
+        library_method, library_frequency, library_retention = _render_vmm_library_backup()
+    
+    # Virtual Machine Backup (for all deployment types)
+    vm_method, vm_frequency, vm_retention = _render_vm_backup()
+    
+    # Host Configuration Backup (for all deployment types)
+    host_method, host_frequency, host_retention = _render_host_backup()
+    
+    # Backup Storage Configuration (for all deployment types)
+    backup_location, encryption_enabled = _render_backup_storage()
+    
+    # Backup Notifications (for all deployment types)
+    notification_email = _render_backup_notifications()
+    
+    # Recovery Testing Schedule (for all deployment types)
+    _render_recovery_testing()
+    
+    # Backup Schedule Visualization
+    _create_backup_schedule_visualization(
+        vmm_db_frequency, library_frequency, vm_frequency, host_frequency,
+        vmm_db_retention, library_retention, vm_retention, host_retention
+    )
+    
+    # Recovery Procedures
+    _render_recovery_procedures()
+    
+    # Backup and Recovery Best Practices
+    _render_best_practices()
     
     # Navigation buttons
     st.markdown("---")
@@ -394,4 +450,11 @@ def render_backup_restore():
             st.rerun()
     
     with col2:
-        st.button("Next: Roles & Permissions", on_click=confirm_backup_configuration)
+        if st.button("Next: Roles & Permissions", key="next_roles"):
+            _save_backup_configuration(
+                vmm_db_method, vmm_db_frequency, vmm_db_retention,
+                library_method, library_frequency, library_retention,
+                vm_method, vm_frequency, vm_retention,
+                host_method, host_frequency, host_retention,
+                backup_location, encryption_enabled, notification_email
+            )

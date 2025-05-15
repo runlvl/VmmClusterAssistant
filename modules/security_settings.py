@@ -8,19 +8,10 @@ from utils.security_validator import (
     generate_security_recommendations
 )
 
-def render_security_settings():
-    """Render the security settings page."""
-    st.title("Security Settings")
-    
-    # Get deployment type from session state
-    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
-    
-    if deployment_type == "hyperv":
-        st.write("Configure security settings for your Hyper-V cluster. Proper security configuration is essential for protecting your virtualization environment.")
-    else:
-        st.write("Configure security settings for your Hyper-V cluster with SCVMM. Proper security configuration is essential for protecting your virtualization environment.")
-    
-    # Initialize security configuration in session state if not present
+# Helper functions for security settings
+
+def _initialize_security_config():
+    """Initialize security configuration in session state if not present."""
     if "configuration" not in st.session_state:
         st.session_state.configuration = {}
     
@@ -33,30 +24,33 @@ def render_security_settings():
             "dkm": True,
             "roles": []
         }
+
+def _save_security_configuration(host_hardening, network_isolation, ipsec_migration,
+                               smb_encryption, dkm_enabled, code_integrity, update_policy,
+                               password_policy, roles, dkm_container):
+    """Save security configuration to session state."""
+    st.session_state.configuration["security"] = {
+        "host_hardening": host_hardening,
+        "network_isolation": network_isolation,
+        "ipsec_migration": ipsec_migration,
+        "smb_encryption": smb_encryption,
+        "dkm": dkm_enabled,
+        "code_integrity": code_integrity,
+        "update_policy": update_policy,
+        "password_policy": password_policy,
+        "roles": roles,
+        "dkm_container": dkm_container
+    }
     
-    # Function to update session state when security configuration is confirmed
-    def confirm_security_configuration():
-        st.session_state.configuration["security"] = {
-            "host_hardening": host_hardening,
-            "network_isolation": network_isolation,
-            "ipsec_migration": ipsec_migration,
-            "smb_encryption": smb_encryption,
-            "dkm": dkm_enabled,
-            "code_integrity": code_integrity,
-            "update_policy": update_policy,
-            "password_policy": password_policy,
-            "roles": roles,
-            "dkm_container": dkm_container
-        }
-        
-        if "completed_steps" not in st.session_state:
-            st.session_state.completed_steps = set()
-        
-        st.session_state.completed_steps.add(5)  # Mark security step as completed
-        st.session_state.current_step = 6  # Move to next step (high availability)
-        st.rerun()
+    if "completed_steps" not in st.session_state:
+        st.session_state.completed_steps = set()
     
-    # Host Security
+    st.session_state.completed_steps.add(5)  # Mark security step as completed
+    st.session_state.current_step = 6  # Move to next step (high availability)
+    st.rerun()
+
+def _render_host_security():
+    """Render host security configuration options."""
     st.header("Host Security")
     
     host_hardening = st.checkbox(
@@ -77,7 +71,10 @@ def render_security_settings():
         help="Regularly apply security updates to all components"
     )
     
-    # Network Security
+    return host_hardening, code_integrity, update_policy
+
+def _render_network_security():
+    """Render network security configuration options."""
     st.header("Network Security")
     
     network_isolation = st.checkbox(
@@ -96,7 +93,10 @@ def render_security_settings():
     if "network" in st.session_state.configuration and "ipsec" in st.session_state.configuration["network"]:
         ipsec_migration = st.session_state.configuration["network"]["ipsec"]
     
-    # Data Security
+    return network_isolation, ipsec_migration
+
+def _render_data_security():
+    """Render data security configuration options."""
     st.header("Data Security")
     
     smb_encryption = st.checkbox(
@@ -125,7 +125,10 @@ def render_security_settings():
     else:
         dkm_container = "VMM_DKM"  # Default value
     
-    # Password Policy
+    return smb_encryption, dkm_enabled, dkm_container
+
+def _render_password_policy():
+    """Render password policy configuration options."""
     st.header("Password Policy")
     
     with st.expander("Password Policy Configuration", expanded=False):
@@ -175,15 +178,12 @@ def render_security_settings():
             "history": history
         }
     
-    # Role-Based Access Control
-    st.header("Role-Based Access Control")
-    
-    # Get deployment type
-    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
-    
-    # Define standard roles based on deployment type
+    return password_policy
+
+def _get_default_roles(deployment_type):
+    """Get default roles based on deployment type."""
     if deployment_type == "hyperv":
-        default_roles = [
+        return [
             {
                 "name": "Administrator",
                 "description": "Full control over Hyper-V environment",
@@ -206,7 +206,7 @@ def render_security_settings():
             }
         ]
     else:
-        default_roles = [
+        return [
             {
                 "name": "Administrator",
                 "description": "Full control over VMM environment",
@@ -228,6 +228,13 @@ def render_security_settings():
                 "permissions": "View-only access to all components"
             }
         ]
+
+def _render_rbac_configuration(deployment_type):
+    """Render role-based access control configuration options."""
+    st.header("Role-Based Access Control")
+    
+    # Define standard roles based on deployment type
+    default_roles = _get_default_roles(deployment_type)
     
     # Allow customization of default roles
     roles = []
@@ -295,7 +302,10 @@ def render_security_settings():
                         "custom": True
                     })
     
-    # Run As Accounts
+    return roles
+
+def _render_run_as_accounts():
+    """Render run as accounts configuration options."""
     st.header("Run As Accounts")
     
     with st.expander("Run As Accounts Configuration", expanded=False):
@@ -321,26 +331,9 @@ def render_security_settings():
                 st.error(error)
         for warning in validate_result["warnings"]:
             st.warning(warning)
-    
-    # Security validation
-    st.header("Security Configuration Validation")
-    
-    # Compile configuration for validation
-    security_config = {
-        "host_hardening": host_hardening,
-        "network_isolation": network_isolation,
-        "ipsec_migration": ipsec_migration,
-        "smb_encryption": smb_encryption,
-        "dkm": {
-            "enabled": dkm_enabled,
-            "container_name": dkm_container
-        },
-        "code_integrity": code_integrity,
-        "update_policy": update_policy,
-        "password_policy": password_policy,
-        "roles": len(roles) > 0
-    }
-    
+
+def _validate_security_configuration(security_config):
+    """Validate security configuration and display results."""
     # Validate security configuration
     validation_results = validate_security_configuration(security_config)
     
@@ -356,14 +349,18 @@ def render_security_settings():
     for recommendation in validation_results["recommendations"]:
         st.info(f"Recommendation: {recommendation}")
     
-    # Security visualization
+    return validation_results
+
+def _render_security_visualization(security_config):
+    """Render security visualization based on configuration."""
     st.subheader("Security Configuration Visualization")
     
     # Create security visualization
     fig = create_security_visualization(security_config)
     st.plotly_chart(fig)
-    
-    # Security recommendations
+
+def _render_security_recommendations(security_config):
+    """Render security recommendations based on configuration."""
     st.header("Security Recommendations")
     
     # Generate security recommendations
@@ -386,8 +383,9 @@ def render_security_settings():
                 st.markdown(f"**Impact:** {rec['impact']}")
                 st.markdown(f"**Implementation:** {rec['implementation']}")
                 st.markdown("---")
-    
-    # Security best practices
+
+def _render_security_best_practices():
+    """Render security best practices."""
     st.header("Security Best Practices")
     
     best_practices = [
@@ -405,6 +403,58 @@ def render_security_settings():
     
     for practice in best_practices:
         st.markdown(f"- {practice}")
+
+def render_security_settings():
+    """Render the security settings page."""
+    st.title("Security Settings")
+    
+    # Get deployment type from session state
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    
+    if deployment_type == "hyperv":
+        st.write("Configure security settings for your Hyper-V cluster. Proper security configuration is essential for protecting your virtualization environment.")
+    else:
+        st.write("Configure security settings for your Hyper-V cluster with SCVMM. Proper security configuration is essential for protecting your virtualization environment.")
+    
+    # Initialize security configuration in session state if not present
+    _initialize_security_config()
+    
+    # Render security configurations
+    host_hardening, code_integrity, update_policy = _render_host_security()
+    network_isolation, ipsec_migration = _render_network_security()
+    smb_encryption, dkm_enabled, dkm_container = _render_data_security()
+    password_policy = _render_password_policy()
+    roles = _render_rbac_configuration(deployment_type)
+    _render_run_as_accounts()
+    
+    # Compile configuration for validation
+    security_config = {
+        "host_hardening": host_hardening,
+        "network_isolation": network_isolation,
+        "ipsec_migration": ipsec_migration,
+        "smb_encryption": smb_encryption,
+        "dkm": {
+            "enabled": dkm_enabled,
+            "container_name": dkm_container
+        },
+        "code_integrity": code_integrity,
+        "update_policy": update_policy,
+        "password_policy": password_policy,
+        "roles": len(roles) > 0
+    }
+    
+    # Security validation section
+    st.header("Security Configuration Validation")
+    validation_results = _validate_security_configuration(security_config)
+    
+    # Security visualization section
+    _render_security_visualization(security_config)
+    
+    # Security recommendations section
+    _render_security_recommendations(security_config)
+    
+    # Security best practices section
+    _render_security_best_practices()
     
     # Navigation buttons
     st.markdown("---")
@@ -421,4 +471,8 @@ def render_security_settings():
             if not validation_results["status"]:
                 st.error("Please correct the security configuration errors before proceeding.")
             else:
-                confirm_security_configuration()
+                _save_security_configuration(
+                    host_hardening, network_isolation, ipsec_migration,
+                    smb_encryption, dkm_enabled, code_integrity, update_policy,
+                    password_policy, roles, dkm_container
+                )
