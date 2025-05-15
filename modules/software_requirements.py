@@ -278,7 +278,8 @@ def render_software_requirements():
                 else:
                     return 'background-color: #FFCCCC'
             
-            styled_df = compat_df.style.applymap(highlight_compatibility, subset=['Status'])
+            # Use the newer Styler.map method instead of the deprecated applymap
+            styled_df = compat_df.style.map(highlight_compatibility, subset=['Status'])
             st.table(styled_df)
             
             # SCVMM-specific best practices
