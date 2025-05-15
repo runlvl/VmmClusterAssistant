@@ -188,44 +188,44 @@ def render_documentation():
                     script_content += f"# {script_name}\n{script_text}\n\n"
                 
                 st.download_button(
-                    label="PowerShell-Implementierungsskripte herunterladen",
+                    label="Download PowerShell Implementation Scripts",
                     data=script_content,
-                    file_name=f"{project_name.replace(' ', '_')}_VMM_Implementierungsskripte.ps1",
+                    file_name=f"{project_name.replace(' ', '_')}_VMM_Implementation_Scripts.ps1",
                     mime="text/plain",
-                    help="Ausführbare PowerShell-Skripte für die automatisierte VMM-Implementation"
+                    help="Executable PowerShell scripts for automated VMM implementation"
                 )
         
         with col2:
             # Configuration JSON
             config_json = json.dumps(config, indent=2)
             st.download_button(
-                label="Konfigurationsdaten als JSON exportieren",
+                label="Export Configuration Data as JSON",
                 data=config_json,
-                file_name=f"{project_name.replace(' ', '_')}_VMM_Konfiguration.json",
+                file_name=f"{project_name.replace(' ', '_')}_VMM_Configuration.json",
                 mime="application/json",
-                help="Exportieren Sie die Konfiguration, um sie später wiederverwenden zu können"
+                help="Export the configuration to reuse it later"
             )
             
             # Add an option to import configuration
             st.file_uploader(
-                "Konfigurationsdaten importieren", 
+                "Import Configuration Data", 
                 type=["json"], 
                 key="config_import",
-                help="Laden Sie eine zuvor exportierte JSON-Konfigurationsdatei"
+                help="Load a previously exported JSON configuration file"
             )
     
-    # Vorschau der generierten Dokumentation
+    # Preview of generated documentation
     if "documentation_generated" in st.session_state and "html" in st.session_state.documentation_generated:
-        st.header("Vorschau der Implementierungsdokumentation")
+        st.header("Implementation Documentation Preview")
         
-        with st.expander("Dokumentationsvorschau anzeigen", expanded=False):
+        with st.expander("Show Documentation Preview", expanded=False):
             try:
                 st.components.v1.html(st.session_state.documentation_generated["html"], height=600, scrolling=True)
             except:
-                st.warning("Vorschau konnte nicht angezeigt werden. Laden Sie die HTML-Datei herunter, um die vollständige Dokumentation zu sehen.")
+                st.warning("Preview could not be displayed. Please download the HTML file to view the complete documentation.")
     
-    # Implementierungs-Checkliste
-    st.header("Implementierungs-Checkliste")
+    # Implementation Checklist
+    st.header("Implementation Checklist")
     
     # Check which steps have been completed
     completed_steps = st.session_state.get("completed_steps", set())
@@ -233,43 +233,43 @@ def render_documentation():
     
     # Create checklist
     checklist_items = [
-        "Hardware-Anforderungen",
-        "Software-Anforderungen",
-        "Netzwerkkonfiguration",
-        "Speicherkonfiguration",
-        "Sicherheitseinstellungen",
-        "Hochverfügbarkeit",
-        "Backup & Wiederherstellung",
-        "Rollen & Berechtigungen",
+        "Hardware Requirements",
+        "Software Requirements",
+        "Network Configuration",
+        "Storage Configuration",
+        "Security Settings",
+        "High Availability",
+        "Backup & Recovery",
+        "Roles & Permissions",
         "Monitoring",
-        "Dokumentation"
+        "Documentation"
     ]
     
     checklist_status = []
     for i, item in enumerate(checklist_items):
-        status = "Abgeschlossen" if i+1 in completed_steps else "Ausstehend"
-        checklist_status.append({"Schritt": item, "Status": status})
+        status = "Completed" if i+1 in completed_steps else "Pending"
+        checklist_status.append({"Step": item, "Status": status})
     
     checklist_df = pd.DataFrame(checklist_status)
     
     # Apply conditional formatting
     def highlight_status(val):
-        if val == "Abgeschlossen":
+        if val == "Completed":
             return 'background-color: #CCFFCC'
         else:
             return 'background-color: #FFFFCC'
     
-    styled_df = checklist_df.style.applymap(highlight_status, subset=['Status'])
+    styled_df = checklist_df.style.map(highlight_status, subset=['Status'])
     st.table(styled_df)
     
     # Calculate progress
     progress_percentage = len(completed_steps) / total_steps * 100
     st.progress(progress_percentage / 100)
-    st.info(f"Implementierungsfortschritt: {progress_percentage:.1f}%")
+    st.info(f"Implementation Progress: {progress_percentage:.1f}%")
     
-    # Diese Bereiche wurden bereits weiter oben implementiert
-    # in der Spalte "Konfigurationsdaten als JSON exportieren"
-    # und "Konfigurationsdaten importieren"
+    # These areas have already been implemented above
+    # in the columns "Export Configuration Data as JSON"
+    # and "Import Configuration Data"
     
     # Navigation buttons
     st.markdown("---")
