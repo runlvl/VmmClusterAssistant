@@ -27,9 +27,28 @@ def check_dependencies():
     
     # Check installed packages
     installed_packages = {pkg.key for pkg in pkg_resources.working_set}
+    
+    # First pass based on pkg_resources
     missing_packages = [pkg for pkg in required_packages if pkg.lower() not in installed_packages]
     
-    # If on Windows, check for WMI specifically
+    # Second pass using direct import check for more reliability
+    for pkg in list(missing_packages):  # Use list() to create a copy as we might modify it
+        try:
+            # Handle special case for streamlit_option_menu (underscore vs dash)
+            if pkg == 'streamlit_option_menu':
+                module_name = 'streamlit_option_menu'
+            else:
+                # Replace dashes with underscores for import compatibility
+                module_name = pkg.replace('-', '_')
+                
+            importlib.import_module(module_name)
+            # If we get here, the module is importable despite not being in pip list
+            missing_packages.remove(pkg)
+        except ImportError:
+            # Keep it in the missing list
+            pass
+    
+    # Special Windows handling for WMI
     if os.name == 'nt' and 'wmi' not in installed_packages:
         try:
             importlib.import_module('wmi')
