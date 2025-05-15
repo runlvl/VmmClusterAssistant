@@ -104,21 +104,39 @@ if 'configuration' not in st.session_state:
 if "deployment_type" not in st.session_state.configuration:
     st.session_state.configuration["deployment_type"] = "hyperv"
 
-# Define implementation steps
-implementation_steps = [
+# Define base implementation steps for Hyper-V
+base_implementation_steps = [
     "Introduction",
     "Installation",
     "Hardware Requirements",
     "Software Requirements",
     "Network Configuration",
     "Storage Configuration",
-    "Security Settings",
     "High Availability",
-    "Backup & Restore",
-    "Roles & Permissions",
-    "Monitoring",
     "Generate Implementation Documentation (Final Step)"
 ]
+
+# Define SCVMM-specific steps
+scvmm_steps = [
+    "Security Settings",
+    "Backup & Restore",
+    "Roles & Permissions",
+    "Monitoring"
+]
+
+# Initialize implementation steps based on deployment type
+deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+
+# Store implementation steps in session state to allow dynamic updating
+if "implementation_steps" not in st.session_state:
+    if deployment_type == "hyperv":
+        st.session_state.implementation_steps = base_implementation_steps.copy()
+    else:
+        # Insert SCVMM-specific steps before the final step
+        st.session_state.implementation_steps = base_implementation_steps[:-1] + scvmm_steps + [base_implementation_steps[-1]]
+
+# Use the steps from session state
+implementation_steps = st.session_state.implementation_steps
 
 # Sidebar
 with st.sidebar:
@@ -201,14 +219,22 @@ def render_introduction():
         """)
         scvmm_selected = st.button("Select with SCVMM", key="scvmm_select")
     
-    # Handle deployment type selection
+    # Handle deployment type selection and update menu
     if hyperv_selected:
         st.session_state.configuration["deployment_type"] = "hyperv"
+        # Update implementation steps based on new deployment type
+        st.session_state.implementation_steps = base_implementation_steps.copy()
         st.success("✅ Hyper-V Cluster Only deployment selected")
+        # Force reload to update sidebar menu
+        st.rerun()
     
     if scvmm_selected:
         st.session_state.configuration["deployment_type"] = "scvmm"
+        # Update implementation steps based on new deployment type
+        st.session_state.implementation_steps = base_implementation_steps[:-1] + scvmm_steps + [base_implementation_steps[-1]]
         st.success("✅ Hyper-V Cluster with SCVMM deployment selected")
+        # Force reload to update sidebar menu
+        st.rerun()
     
     # Display current selection
     current_type = st.session_state.configuration.get("deployment_type", "hyperv")
