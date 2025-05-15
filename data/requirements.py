@@ -134,8 +134,8 @@ def get_software_requirements():
         ],
         "vmm_requirements": [
             {
-                "Component": "System Center 2022",
-                "Compatible OS": "Windows Server 2022",
+                "Component": "System Center 2022/2025",
+                "Compatible OS": "Windows Server 2022/2025",
                 "Notes": "Latest version recommended (Optional)"
             }
         ],

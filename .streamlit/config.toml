@@ -4,18 +4,8 @@ address = "0.0.0.0"
 port = 5000
 
 [theme]
-base = "light"
 primaryColor = "#1C5631"  # Bechtle Grün
 backgroundColor = "#ffffff"
 secondaryBackgroundColor = "#f0f2f6"
 textColor = "#262730"
 font = "sans serif"
-
-[browser]
-gatherUsageStats = false
-
-[ui]
-hideTopBar = false
-
-[client]
-toolbarMode = "minimal"
