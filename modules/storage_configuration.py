@@ -51,6 +51,21 @@ def render_storage_configuration():
     # Initialize storage configuration
     _initialize_storage_config()
     
+    # Storage Architecture
+    st.header("Storage Architecture")
+    
+    # Get number of Hyper-V hosts from hardware configuration
+    hyper_v_hosts = st.session_state.configuration.get("hardware", {}).get("host_count", 2)
+    
+    # Render storage type selection
+    storage_type, storage_connectivity, is_s2d = _render_storage_type_selection(hyper_v_hosts)
+    
+    # Render redundancy options
+    redundancy, mpio_enabled = _render_redundancy_options(is_s2d)
+    
+    # Render filesystem options and CSV count
+    filesystem, csv_count = _render_filesystem_options(is_s2d, hyper_v_hosts)
+    
 def _initialize_storage_config():
     """Initialize storage configuration in session state if not present."""
     if "configuration" not in st.session_state:
@@ -63,12 +78,118 @@ def _initialize_storage_config():
             "quorum_disk": {"size_gb": 1},
             "mpio_enabled": True
         }
+
+def _render_storage_type_selection(hyper_v_hosts):
+    """Render storage type selection section."""
+    # Storage type selection
+    storage_options = ["SAN", "iSCSI", "FC", "SMB", "Storage Spaces Direct (S2D)", "Local", "NVMe"]
+    storage_type = st.selectbox(
+        "Storage Type",
+        options=storage_options,
+        index=0,
+        help="Select the type of storage for your cluster"
+    )
     
-    # Storage Architecture
-    st.header("Storage Architecture")
+    # Warning messages for specific storage types
+    if storage_type == "Local":
+        st.warning("⚠️ Local storage is not recommended for production clusters. Consider using shared storage.")
     
-    # Get number of Hyper-V hosts from hardware configuration
-    hyper_v_hosts = st.session_state.configuration.get("hardware", {}).get("host_count", 2)
+    if storage_type == "Storage Spaces Direct (S2D)":
+        st.success("✅ Storage Spaces Direct (S2D) is a good choice for hyper-converged infrastructure.")
+        
+    is_s2d = storage_type == "Storage Spaces Direct (S2D)"
+    
+    # Storage connectivity
+    if storage_type != "Local" and storage_type != "SMB":
+        storage_connectivity = st.selectbox(
+            "Storage Connectivity",
+            options=["1 Gbps", "10 Gbps", "16 Gbps", "32 Gbps"],
+            index=1,
+            help="Select the connectivity speed for your storage"
+        )
+    else:
+        storage_connectivity = "N/A"
+    
+    return storage_type, storage_connectivity, is_s2d
+
+def _render_redundancy_options(is_s2d):
+    """Render redundancy and filesystem options based on storage type."""
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Change redundancy options based on storage type
+        if is_s2d:
+            redundancy_options = ["2-way mirror", "3-way mirror", "Parity"]
+            redundancy_index = 0
+            redundancy_help = "Select the redundancy level for your S2D storage"
+        else:
+            redundancy_options = ["RAID 1", "RAID 5", "RAID 6", "RAID 10", "None"]
+            redundancy_index = 0
+            redundancy_help = "Select the redundancy level for your storage"
+            
+        redundancy = st.selectbox(
+            "Storage Redundancy",
+            options=redundancy_options,
+            index=redundancy_index,
+            help=redundancy_help
+        )
+    
+    with col2:
+        # Show appropriate options based on storage type
+        if not is_s2d:
+            mpio_enabled = st.checkbox(
+                "Enable MPIO (Multipath I/O)",
+                value=True,
+                help="Recommended: Enable MPIO for redundant storage connectivity"
+            )
+        else:
+            mpio_enabled = True  # S2D always has built-in redundancy
+            st.info("S2D includes built-in storage redundancy")
+    
+    return redundancy, mpio_enabled
+
+def _render_filesystem_options(is_s2d, hyper_v_hosts):
+    """Render filesystem options and CSV count selection."""
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if is_s2d:
+            # For S2D, ReFS is recommended
+            filesystem = st.selectbox(
+                "Filesystem",
+                options=["ReFS", "NTFS"],
+                index=0,
+                help="ReFS is recommended for S2D deployments"
+            )
+            if filesystem == "ReFS":
+                st.success("✅ ReFS is the recommended filesystem for Storage Spaces Direct")
+        else:
+            # For classical storage, NTFS is recommended
+            filesystem = st.selectbox(
+                "Filesystem",
+                options=["NTFS", "ReFS"],
+                index=0,
+                help="NTFS is recommended for classical storage"
+            )
+            if filesystem == "ReFS":
+                st.warning("⚠️ ReFS is primarily recommended for Storage Spaces Direct. NTFS is the standard for classical storage.")
+    
+    with col2:
+        # CSV per host recommendation
+        min_csv_count = max(hyper_v_hosts, 1)  # At least one CSV per host
+        csv_count = st.number_input(
+            "Number of CSV volumes",
+            min_value=min_csv_count,
+            value=min_csv_count,
+            help=f"Minimum recommended: At least one CSV per host ({hyper_v_hosts} hosts)"
+        )
+        
+        if csv_count < hyper_v_hosts:
+            st.warning(f"⚠️ It's recommended to have at least one CSV per host ({hyper_v_hosts} hosts)")
+        else:
+            st.success(f"✅ Good! You have at least one CSV per host ({csv_count} CSVs for {hyper_v_hosts} hosts)")
+            
+    return filesystem, csv_count
     
     # Storage type selection
     storage_options = ["SAN", "iSCSI", "FC", "SMB", "Storage Spaces Direct (S2D)", "Local", "NVMe"]
@@ -427,4 +548,8 @@ def _initialize_storage_config():
             if not validation_results["status"]:
                 st.error("Please correct the storage configuration errors before proceeding.")
             else:
-                confirm_storage_configuration()
+                _save_storage_configuration(
+                    storage_type, csv_volumes, csv_count, quorum_disk, mpio_enabled,
+                    shared_between_clusters, redundancy, storage_connectivity, 
+                    filesystem, is_s2d, hyper_v_hosts
+                )
