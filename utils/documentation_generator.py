@@ -1032,7 +1032,8 @@ def generate_implementation_documentation(config):
     # Prepare data for the template
     context = {
         "config": config,
-        "generation_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "generation_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "logo_base64": logo_base64
     }
     
     # Render the template
