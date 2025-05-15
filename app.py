@@ -43,10 +43,10 @@ def set_header():
             padding-bottom: 1rem;
         }}
         .logo-container {{
-            margin-right: 20px;
+            margin-right: 15px;
         }}
         .logo-image {{
-            height: 50px;
+            height: 45px;
         }}
         .header-text {{
             display: flex;
@@ -55,9 +55,11 @@ def set_header():
         }}
         .header-title {{
             color: #1C5631;
-            font-size: 20px;
+            font-size: 18px;
+            font-weight: 500;
             margin: 0;
             white-space: nowrap;
+            margin-left: 5px;
         }}
     </style>
     <div class="header-container">
