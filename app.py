@@ -34,13 +34,45 @@ def set_header():
     logo_path = "assets/bechtle_logo.png"
     logo_base64 = get_base64_of_image(logo_path)
     
-    # Set the logo and header text
+    # Set the logo and header text with improved formatting
     header_html = f"""
-    <div style="display: flex; align-items: center; padding-bottom: 1rem;">
-        <img src="data:image/png;base64,{logo_base64}" style="height: 60px; margin-right: 10px;">
-        <div>
-            <h2 style="color: #1C5631; margin-bottom: 0;">Professional Services</h2>
-            <p style="color: #1C5631; margin-top: 0;">Datacenter & Endpoint</p>
+    <style>
+        .header-container {{
+            display: flex;
+            align-items: center;
+            padding-bottom: 1rem;
+        }}
+        .logo-container {{
+            margin-right: 20px;
+        }}
+        .logo-image {{
+            height: 50px;
+        }}
+        .header-text {{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }}
+        .header-title {{
+            color: #1C5631;
+            font-size: 24px;
+            margin-bottom: 0;
+            line-height: 1.2;
+        }}
+        .header-subtitle {{
+            color: #1C5631;
+            font-size: 16px;
+            margin-top: 4px;
+            font-weight: normal;
+        }}
+    </style>
+    <div class="header-container">
+        <div class="logo-container">
+            <img src="data:image/png;base64,{logo_base64}" class="logo-image">
+        </div>
+        <div class="header-text">
+            <div class="header-title">Professional Services</div>
+            <div class="header-subtitle">Datacenter & Endpoint</div>
         </div>
     </div>
     """
