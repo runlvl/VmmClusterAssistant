@@ -106,14 +106,70 @@ with st.sidebar:
         .stTabs [data-baseweb="tab"] {
             color: #FAFAFA;
         }
-        .stMarkdown, .stText, .stCode {
-            color: #FAFAFA;
+        .stMarkdown, .stText, .stCode, p, span, label, div, h1, h2, h3, h4, h5, h6 {
+            color: #FAFAFA !important;
         }
-        .css-145kmo2 {
+        .css-145kmo2, .css-zt5igj {
+            color: #FAFAFA !important;
+        }
+        .css-erpbzb, .css-und85c, .css-184tjsw p {
             color: #FAFAFA !important;
         }
         .block-container {
             background-color: #0E1117;
+        }
+        table {
+            color: #FAFAFA !important;
+        }
+        th, td {
+            color: #FAFAFA !important;
+            background-color: #262730 !important;
+        }
+        .stDataFrame {
+            color: #FAFAFA !important;
+        }
+        .dataframe {
+            color: #FAFAFA !important;
+        }
+        .css-1n76uvr, .css-qehhe6 {
+            color: #FAFAFA !important;
+        }
+        .st-co, .st-cx, .st-cy {
+            background-color: #262730 !important;
+            color: #FAFAFA !important;
+        }
+        .st-c0, .st-c1, .st-c2, .st-c3, .st-c4, .st-c5, .st-c6, .st-c7, .st-c8, .st-c9, .st-ca, .st-cb, .st-cc, .st-cd, .st-ce, .st-cf, .st-cg, .st-ch, .st-ci, .st-cj, .st-ck, .st-cl, .st-cm, .st-cn, .st-co, .st-cp, .st-cq, .st-cr, .st-cs, .st-ct, .st-cu, .st-cv, .st-cw, .st-cx {
+            background-color: #262730 !important;
+            color: #FAFAFA !important;
+        }
+        .streamlit-expanderHeader {
+            color: #FAFAFA !important;
+            background-color: #262730 !important;
+        }
+        .streamlit-expanderContent {
+            color: #FAFAFA !important;
+            background-color: #262730 !important;
+        }
+        .stAlert {
+            background-color: #262730 !important;
+            color: #FAFAFA !important;
+        }
+        .stAlert > div {
+            color: #FAFAFA !important;
+        }
+        button {
+            color: #FAFAFA !important;
+            border-color: #4D5156 !important;
+        }
+        .css-1offfwp {
+            color: #FAFAFA !important;
+        }
+        select, input, textarea {
+            color: #FAFAFA !important;
+            background-color: #262730 !important;
+        }
+        .stSelectbox > div {
+            background-color: #262730 !important;
         }
         </style>
         """, unsafe_allow_html=True)
