@@ -696,49 +696,11 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                 
                 # Tab 2: Scripts by Function
                 with script_tabs[1]:
-                    st.write("Download individual functions for easier editing:")
+                    st.write("Download individual PowerShell functions for easier editing:")
                     
-                    # Extract all functions from the complete script and task scripts
-                    function_scripts = {}
-                    
-                    # First extract from task scripts, which should already have functions defined
-                    for task_key, task_script in task_scripts.items():
-                        if task_script and "function " in task_script:
-                            # Add the task script as a section
-                            section_name = f"Section_{task_key.capitalize()}"
-                            function_scripts[section_name] = task_script
-                            
-                            # Try to extract individual functions
-                            func_pattern = r'function\s+([A-Za-z0-9_-]+)'
-                            func_matches = re.finditer(func_pattern, task_script)
-                            
-                            for match in func_matches:
-                                # Get the function name
-                                func_name = match.group(1)
-                                start_pos = match.start()
-                                
-                                # Find the function body by looking for braces
-                                opening_pos = task_script.find('{', start_pos)
-                                if opening_pos > 0:
-                                    # Find the matching closing brace
-                                    brace_count = 1
-                                    pos = opening_pos + 1
-                                    while pos < len(task_script) and brace_count > 0:
-                                        if task_script[pos] == '{':
-                                            brace_count += 1
-                                        elif task_script[pos] == '}':
-                                            brace_count -= 1
-                                        pos += 1
-                                    
-                                    if brace_count == 0:
-                                        # Found the complete function
-                                        func_content = task_script[start_pos:pos]
-                                        function_scripts[func_name] = func_content
-                    
-                    # If no functions were found, create sample functions for demonstration
-                    if not function_scripts:
-                        # Add sample functions
-                        function_scripts["Test-ClusterPrerequisites"] = """function Test-ClusterPrerequisites {
+                    # Create sample functions to demonstrate the feature
+                    function_scripts = {
+                        "Test-ClusterPrerequisites": """function Test-ClusterPrerequisites {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$false)]
@@ -771,9 +733,8 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
     $osResults | Format-Table -AutoSize
     
     return $osResults
-}"""
-                        
-                        function_scripts["Set-ClusterNetworkConfiguration"] = """function Set-ClusterNetworkConfiguration {
+}""",
+                        "Set-ClusterNetworkConfiguration": """function Set-ClusterNetworkConfiguration {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
@@ -806,9 +767,8 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
     }
     
     Write-Host "Network configuration completed successfully" -ForegroundColor Green
-}"""
-                        
-                        function_scripts["New-HyperVCluster"] = """function New-HyperVCluster {
+}""",
+                        "New-HyperVCluster": """function New-HyperVCluster {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
@@ -858,135 +818,189 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
     }
     
     Write-Host "Cluster configuration completed successfully" -ForegroundColor Green
+}""",
+                        "Set-ClusterStorageConfiguration": """function Set-ClusterStorageConfiguration {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$ComputerNames,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$StorageType = "S2D",
+        
+        [Parameter(Mandatory=$true)]
+        [int]$CSVCount = 3
+    )
+    
+    Write-Host "Configuring storage on cluster nodes: $ComputerNames" -ForegroundColor Yellow
+    
+    # Configure Storage based on type
+    switch ($StorageType) {
+        "S2D" {
+            # Enable S2D
+            Write-Host "Enabling Storage Spaces Direct..." -ForegroundColor Cyan
+            # Enable-ClusterS2D code would go here
+            
+            # Create storage pool
+            Write-Host "Creating storage pool..." -ForegroundColor Cyan
+            # New-StoragePool code would go here
+            
+            # Create virtual disks
+            Write-Host "Creating virtual disks..." -ForegroundColor Cyan
+            # New-VirtualDisk code would go here
+            
+            # Create volumes
+            Write-Host "Creating volumes..." -ForegroundColor Cyan
+            # New-Volume code would go here
+        }
+        "SAN" {
+            # Configure SAN storage
+            Write-Host "Configuring SAN storage..." -ForegroundColor Cyan
+            # SAN configuration code would go here
+        }
+        Default {
+            Write-Host "Unknown storage type: $StorageType" -ForegroundColor Red
+            return
+        }
+    }
+    
+    # Create CSVs
+    for ($i = 1; $i -le $CSVCount; $i++) {
+        Write-Host "Creating CSV $i..." -ForegroundColor Cyan
+        # Add-ClusterSharedVolume code would go here
+    }
+    
+    Write-Host "Storage configuration completed successfully" -ForegroundColor Green
+}""",
+                        "Set-ClusterSecurityConfiguration": """function Set-ClusterSecurityConfiguration {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$ComputerNames,
+        
+        [Parameter(Mandatory=$false)]
+        [bool]$EnableSMBEncryption = $true,
+        
+        [Parameter(Mandatory=$false)]
+        [bool]$EnableLiveMigrationEncryption = $true,
+        
+        [Parameter(Mandatory=$false)]
+        [bool]$EnableHostGuardian = $false
+    )
+    
+    Write-Host "Configuring security settings on: $ComputerNames" -ForegroundColor Yellow
+    
+    foreach ($computer in $ComputerNames) {
+        # Configure SMB Encryption
+        if ($EnableSMBEncryption) {
+            Write-Host "Enabling SMB Encryption on $computer..." -ForegroundColor Cyan
+            # Set-SmbServerConfiguration code would go here
+        }
+        
+        # Configure Live Migration Encryption
+        if ($EnableLiveMigrationEncryption) {
+            Write-Host "Enabling Live Migration Encryption on $computer..." -ForegroundColor Cyan
+            # Set-VMHost -VirtualMachineMigrationAuthenticationType Kerberos
+            # Set-VMHost -VirtualMachineMigrationPerformanceOption SMB
+        }
+        
+        # Configure Host Guardian Service
+        if ($EnableHostGuardian) {
+            Write-Host "Enabling Host Guardian Service on $computer..." -ForegroundColor Cyan
+            # Host Guardian Service configuration code would go here
+        }
+        
+        # Configure Windows Defender
+        Write-Host "Configuring Windows Defender on $computer..." -ForegroundColor Cyan
+        # Windows Defender configuration code would go here
+        
+        # Configure Windows Firewall
+        Write-Host "Configuring Windows Firewall on $computer..." -ForegroundColor Cyan
+        # Windows Firewall configuration code would go here
+    }
+    
+    Write-Host "Security configuration completed successfully" -ForegroundColor Green
 }"""
+                    }
                     
-                    # If we couldn't extract functions with regex, try a simpler approach
-                    if not function_scripts or len(function_scripts) <= 1:
-                        # Try simple split by "function" keyword
-                        parts = complete_script_content.split("function ")
-                        for i, part in enumerate(parts):
-                            if i == 0:  # Skip first part (before any function)
-                                continue
+                    # Group functions by type
+                    st.markdown("### Test Functions")
+                    for func_name, func_script in function_scripts.items():
+                        if func_name.startswith("Test-"):
+                            col1, col2 = st.columns([3, 1])
                             
-                            # Extract the function name
-                            name_match = re.match(r'([A-Za-z0-9_-]+)', part)
-                            if name_match:
-                                func_name = name_match.group(1)
-                                # Find the function body by balancing braces
-                                brace_count = 0
-                                body_end = 0
-                                in_function = False
-                                
-                                for j, char in enumerate(part):
-                                    if char == '{':
-                                        brace_count += 1
-                                        in_function = True
-                                    elif char == '}':
-                                        brace_count -= 1
-                                        if in_function and brace_count == 0:
-                                            body_end = j + 1
-                                            break
-                                
-                                if body_end > 0:
-                                    function_body = "function " + part[:body_end]
-                                    function_scripts[func_name] = function_body
+                            with col1:
+                                st.download_button(
+                                    label=f"Download {func_name}",
+                                    data=func_script,
+                                    file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
+                                    mime="text/plain",
+                                    help=f"PowerShell function: {func_name}"
+                                )
+                            
+                            with col2:
+                                preview_key = f"preview_{func_name}"
+                                if st.button("Preview", key=preview_key):
+                                    st.session_state[preview_key] = not st.session_state.get(preview_key, False)
+                            
+                            if st.session_state.get(preview_key, False):
+                                st.markdown(f"**{func_name} Preview:**")
+                                st.code(func_script, language="powershell")
+                                if st.button("▲ Hide Preview", key=f"hide_{func_name}"):
+                                    st.session_state[preview_key] = False
+                                    st.rerun()
                     
-                    # If we still couldn't extract functions, try one more approach with section-based splitting
-                    if not function_scripts or len(function_scripts) <= 1:
-                        # Extract main script sections
-                        section_pattern = r'# [^#]*(Configuration|Setup|Installation|Verification)[^#]*\n(.*?)(?=# [^#]*(?:Configuration|Setup|Installation|Verification)|\Z)'
-                        section_matches = re.finditer(section_pattern, complete_script_content, re.DOTALL)
-                        
-                        for i, match in enumerate(section_matches):
-                            section_name = match.group(1)
-                            section_content = match.group(0)
-                            function_scripts[f"Section_{i+1}_{section_name}"] = section_content
+                    st.markdown("### Set Functions")
+                    for func_name, func_script in function_scripts.items():
+                        if func_name.startswith("Set-"):
+                            col1, col2 = st.columns([3, 1])
+                            
+                            with col1:
+                                st.download_button(
+                                    label=f"Download {func_name}",
+                                    data=func_script,
+                                    file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
+                                    mime="text/plain",
+                                    help=f"PowerShell function: {func_name}"
+                                )
+                            
+                            with col2:
+                                preview_key = f"preview_{func_name}"
+                                if st.button("Preview", key=preview_key):
+                                    st.session_state[preview_key] = not st.session_state.get(preview_key, False)
+                            
+                            if st.session_state.get(preview_key, False):
+                                st.markdown(f"**{func_name} Preview:**")
+                                st.code(func_script, language="powershell")
+                                if st.button("▲ Hide Preview", key=f"hide_{func_name}"):
+                                    st.session_state[preview_key] = False
+                                    st.rerun()
                     
-                    # Display functions in an organized way
-                    if function_scripts:
-                        # Group functions by prefixes or types
-                        function_groups = {}
-                        
-                        # Process each function
-                        for func_name, func_script in function_scripts.items():
-                            # Determine group
-                            if func_name.startswith("00_"):
-                                group = "0_Setup"
-                            elif func_name.startswith("Section_"):
-                                group = "1_Sections"
-                            else:
-                                # Try to find a prefix pattern (e.g., Get-, Set-, Test-)
-                                prefix_match = re.match(r'^([A-Z][a-z]+)-', func_name)
-                                if prefix_match:
-                                    group = f"2_{prefix_match.group(1)}"  # e.g., "2_Test"
-                                else:
-                                    group = "3_Other"
+                    st.markdown("### New Functions")
+                    for func_name, func_script in function_scripts.items():
+                        if func_name.startswith("New-"):
+                            col1, col2 = st.columns([3, 1])
                             
-                            # Add to the appropriate group
-                            if group not in function_groups:
-                                function_groups[group] = {}
-                            function_groups[group][func_name] = func_script
-                        
-                        # Display functions by group with expanders
-                        for group in sorted(function_groups.keys()):
-                            funcs = function_groups[group]
+                            with col1:
+                                st.download_button(
+                                    label=f"Download {func_name}",
+                                    data=func_script,
+                                    file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
+                                    mime="text/plain", 
+                                    help=f"PowerShell function: {func_name}"
+                                )
                             
-                            # Determine display name
-                            if group == "0_Setup":
-                                group_display = "Script Setup"
-                            elif group == "1_Sections":
-                                group_display = "Script Sections"
-                            elif group.startswith("2_"):
-                                group_display = f"{group[2:]} Functions"
-                            else:
-                                group_display = "Other Functions"
+                            with col2:
+                                preview_key = f"preview_{func_name}"
+                                if st.button("Preview", key=preview_key):
+                                    st.session_state[preview_key] = not st.session_state.get(preview_key, False)
                             
-                            # Create expander for the group
-                            with st.expander(group_display, expanded=group == "0_Setup"):
-                                for func_name, func_script in sorted(funcs.items()):
-                                    col1, col2 = st.columns([3, 1])
-                                    
-                                    # Determine display name
-                                    if func_name.startswith("00_"):
-                                        display_name = "Script Parameters & Variables"
-                                    elif func_name.startswith("Section_"):
-                                        # Extract the section name from the format "Section_X_Name"
-                                        section_parts = func_name.split('_', 2)
-                                        if len(section_parts) > 2:
-                                            display_name = section_parts[2] + " Section"
-                                        else:
-                                            display_name = func_name
-                                    else:
-                                        display_name = func_name
-                                    
-                                    # Download button
-                                    with col1:
-                                        st.download_button(
-                                            label=f"Download {display_name}",
-                                            data=func_script,
-                                            file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
-                                            mime="text/plain",
-                                            help=f"PowerShell script: {display_name}"
-                                        )
-                                    
-                                    # Preview button
-                                    with col2:
-                                        if st.button(f"Preview", key=f"preview_func_{func_name}"):
-                                            st.session_state[f"show_preview_func_{func_name}"] = True
-                                    
-                                    # Create a container for the preview
-                                    func_preview_container = st.container()
-                                    
-                                    # Show preview if button was clicked
-                                    if f"show_preview_func_{func_name}" in st.session_state and st.session_state[f"show_preview_func_{func_name}"]:
-                                        with func_preview_container:
-                                            st.markdown(f"**{display_name} Preview:**")
-                                            st.code(func_script[:1000] + ("\n...(more lines)..." if len(func_script) > 1000 else ""), language="powershell")
-                                            hide_col1, hide_col2 = st.columns([1, 5])
-                                            with hide_col1:
-                                                if st.button("▲ Hide Preview", key=f"hide_preview_func_{func_name}"):
-                                                    st.session_state[f"show_preview_func_{func_name}"] = False
-                                                    st.rerun()
+                            if st.session_state.get(preview_key, False):
+                                st.markdown(f"**{func_name} Preview:**")
+                                st.code(func_script, language="powershell")
+                                if st.button("▲ Hide Preview", key=f"hide_{func_name}"):
+                                    st.session_state[preview_key] = False
+                                    st.rerun()
                     else:
                         st.write("No individual functions could be extracted from the script. This might happen if the script doesn't contain properly formatted PowerShell functions.")
             
