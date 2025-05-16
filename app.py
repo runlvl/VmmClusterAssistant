@@ -96,80 +96,152 @@ with st.sidebar:
     if dark_mode:
         st.markdown("""
         <style>
+        /* Dunkelgraue Farbpalette für den Dark Mode */
+        :root {
+            --background-main: #1E1E1E;
+            --background-secondary: #2D2D2D;
+            --background-tertiary: #3A3A3A;
+            --text-primary: #E0E0E0;
+            --text-secondary: #B0B0B0;
+            --accent-color: #2E7D4B;
+            --border-color: #4D4D4D;
+            --hover-bg: #3E3E3E;
+        }
+        
+        /* Haupthintergrund */
         .stApp {
-            background-color: #0E1117;
-            color: #FAFAFA;
-        }
-        .stTabs [data-baseweb="tab-list"] {
-            background-color: #262730;
-        }
-        .stTabs [data-baseweb="tab"] {
-            color: #FAFAFA;
-        }
-        .stMarkdown, .stText, .stCode, p, span, label, div, h1, h2, h3, h4, h5, h6 {
-            color: #FAFAFA !important;
-        }
-        .css-145kmo2, .css-zt5igj {
-            color: #FAFAFA !important;
-        }
-        .css-erpbzb, .css-und85c, .css-184tjsw p {
-            color: #FAFAFA !important;
+            background-color: var(--background-main);
+            color: var(--text-primary);
         }
         .block-container {
-            background-color: #0E1117;
+            background-color: var(--background-main);
         }
+        
+        /* Text-Elemente */
+        .stMarkdown, .stText, .stCode, p, span, label, div, h1, h2, h3, h4, h5, h6 {
+            color: var(--text-primary) !important;
+        }
+        .css-145kmo2, .css-zt5igj, .css-erpbzb, .css-und85c, .css-184tjsw p, .css-1n76uvr, .css-qehhe6, .css-1offfwp {
+            color: var(--text-primary) !important;
+        }
+        
+        /* Tabs und Navigation */
+        .stTabs [data-baseweb="tab-list"] {
+            background-color: var(--background-secondary);
+        }
+        .stTabs [data-baseweb="tab"] {
+            color: var(--text-primary);
+        }
+        
+        /* Tabellen */
         table {
-            color: #FAFAFA !important;
+            color: var(--text-primary) !important;
         }
-        th, td {
-            color: #FAFAFA !important;
-            background-color: #262730 !important;
+        th {
+            color: var(--text-primary) !important;
+            background-color: var(--background-tertiary) !important;
+            font-weight: bold !important;
         }
-        .stDataFrame {
-            color: #FAFAFA !important;
+        td {
+            color: var(--text-primary) !important;
+            background-color: var(--background-secondary) !important;
         }
-        .dataframe {
-            color: #FAFAFA !important;
+        .stDataFrame, .dataframe {
+            color: var(--text-primary) !important;
         }
-        .css-1n76uvr, .css-qehhe6 {
-            color: #FAFAFA !important;
-        }
+        
+        /* Tabellenzellen */
         .st-co, .st-cx, .st-cy {
-            background-color: #262730 !important;
-            color: #FAFAFA !important;
+            background-color: var(--background-secondary) !important;
+            color: var(--text-primary) !important;
         }
         .st-c0, .st-c1, .st-c2, .st-c3, .st-c4, .st-c5, .st-c6, .st-c7, .st-c8, .st-c9, .st-ca, .st-cb, .st-cc, .st-cd, .st-ce, .st-cf, .st-cg, .st-ch, .st-ci, .st-cj, .st-ck, .st-cl, .st-cm, .st-cn, .st-co, .st-cp, .st-cq, .st-cr, .st-cs, .st-ct, .st-cu, .st-cv, .st-cw, .st-cx {
-            background-color: #262730 !important;
-            color: #FAFAFA !important;
+            background-color: var(--background-secondary) !important;
+            color: var(--text-primary) !important;
         }
+        
+        /* Expander und Alerts */
         .streamlit-expanderHeader {
-            color: #FAFAFA !important;
-            background-color: #262730 !important;
+            color: var(--text-primary) !important;
+            background-color: var(--background-secondary) !important;
+            border-color: var(--border-color) !important;
         }
         .streamlit-expanderContent {
-            color: #FAFAFA !important;
-            background-color: #262730 !important;
+            color: var(--text-primary) !important;
+            background-color: var(--background-secondary) !important;
+            border-color: var(--border-color) !important;
         }
         .stAlert {
-            background-color: #262730 !important;
-            color: #FAFAFA !important;
+            background-color: var(--background-secondary) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
         }
         .stAlert > div {
-            color: #FAFAFA !important;
+            color: var(--text-primary) !important;
         }
+        
+        /* Info-Boxen */
+        .stInfo {
+            background-color: rgba(46, 125, 75, 0.2) !important;
+            color: var(--text-primary) !important;
+        }
+        .stSuccess {
+            background-color: rgba(46, 125, 75, 0.2) !important;
+        }
+        .stWarning {
+            background-color: rgba(255, 182, 0, 0.2) !important;
+        }
+        .stError {
+            background-color: rgba(255, 0, 0, 0.2) !important;
+        }
+        
+        /* Buttons und Formularelemente */
         button {
-            color: #FAFAFA !important;
-            border-color: #4D5156 !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+            background-color: var(--background-tertiary) !important;
         }
-        .css-1offfwp {
-            color: #FAFAFA !important;
+        button:hover {
+            background-color: var(--hover-bg) !important;
         }
         select, input, textarea {
-            color: #FAFAFA !important;
-            background-color: #262730 !important;
+            color: var(--text-primary) !important;
+            background-color: var(--background-tertiary) !important;
+            border-color: var(--border-color) !important;
         }
-        .stSelectbox > div {
-            background-color: #262730 !important;
+        .stSelectbox > div, .stMultiselect > div {
+            background-color: var(--background-tertiary) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        /* Checkboxen und Radio-Buttons */
+        .stCheckbox > div, .stRadio > div {
+            color: var(--text-primary) !important;
+        }
+        
+        /* Slider */
+        .stSlider > div {
+            color: var(--text-primary) !important;
+        }
+        
+        /* Sidebar */
+        section[data-testid="stSidebar"] {
+            background-color: var(--background-secondary) !important;
+            border-right: 1px solid var(--border-color) !important;
+        }
+        
+        /* Container mit Rahmen */
+        [data-testid="stVerticalBlock"] > div > div[style*="border"] {
+            border-color: var(--border-color) !important;
+            background-color: var(--background-secondary) !important;
+        }
+        
+        /* Optionaler Bechtle-Akzent für ausgewählte Elemente */
+        .stButton > button[data-baseweb="button"]:active {
+            background-color: var(--accent-color) !important;
+        }
+        .stProgress > div > div > div > div {
+            background-color: var(--accent-color) !important;
         }
         </style>
         """, unsafe_allow_html=True)
