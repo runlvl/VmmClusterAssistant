@@ -44,73 +44,107 @@ def set_header():
     logo_path = "assets/bechtle_logo.png"
     logo_base64 = get_base64_of_image(logo_path)
     
-    # Check if dark mode is enabled
-    is_dark_mode = 'dark_mode' in st.session_state and st.session_state.dark_mode
+    # Check if dark mode is enabled - direkter Zugriff zur Vermeidung von None
+    is_dark_mode = st.session_state.get('dark_mode', False)
     
-    # Set text color based on mode
+    # Farben direkt setzen (keine f-string-Interpolation für CSS-Klassen)
     text_color = "#E0E0E0" if is_dark_mode else "#000000"
     bg_color = "#1E1E1E" if is_dark_mode else "#ffffff"
     accent_color = "#2E7D4B" if is_dark_mode else "#1C5631"
     
     # Set the logo and header text with improved formatting
-    header_html = f"""
-    <style>
-        .header-container {{
-            display: flex;
-            align-items: flex-end; /* Align items to the bottom */
-            padding-bottom: 1rem;
-            margin-top: 0.5rem;
-            background-color: {bg_color};
-        }}
-        .logo-container {{
-            margin-right: 12px;
-            line-height: 0; /* Remove any line-height spacing */
-        }}
-        .logo-image {{
-            height: 50px;
-            display: block; /* Remove any inline spacing */
-            filter: {('brightness(1.5) contrast(0.95)' if is_dark_mode else 'none')};
-        }}
-        .header-text {{
-            display: inline-block;
-            line-height: 1;
-            padding-bottom: 4px; /* Increased to move text up relative to logo */
-            color: {text_color};
-        }}
-        .header-title {{
-            font-size: 22px;
-            font-weight: 600;
-            margin: 0;
-            white-space: nowrap;
-            padding-left: 5px;
-        }}
-        /* Spezifisches Styling für Dark Mode */
-        .dark-mode-header {{
-            color: #E0E0E0 !important;
-        }}
-        .dark-mode-accent {{
-            color: #2E7D4B !important;
-        }}
-        /* Helles Styling für Light Mode */
-        .light-mode-header {{
-            color: #000000 !important;
-        }}
-        .light-mode-accent {{
-            color: #1C5631 !important;
-        }}
-    </style>
-    <div class="header-container">
-        <div class="logo-container">
-            <img src="data:image/png;base64,{logo_base64}" class="logo-image">
-        </div>
-        <div class="header-text">
-            <div class="header-title">
-                <span style="font-size: 30px; font-weight: 700;" class="{('dark-mode-header' if is_dark_mode else 'light-mode-header')}">Professional Services</span> 
-                <span class="{('dark-mode-header' if is_dark_mode else 'light-mode-header')}">| Datacenter & Endpoint</span>
+    # Direktes HTML mit festen Farben basierend auf dem Modus
+    if is_dark_mode:
+        # Dark Mode Header
+        header_html = f"""
+        <style>
+            .header-container {{
+                display: flex;
+                align-items: flex-end;
+                padding-bottom: 1rem;
+                margin-top: 0.5rem;
+                background-color: #1E1E1E;
+            }}
+            .logo-container {{
+                margin-right: 12px;
+                line-height: 0;
+            }}
+            .logo-image {{
+                height: 50px;
+                display: block;
+                filter: brightness(1.5);
+            }}
+            .header-text {{
+                display: inline-block;
+                line-height: 1;
+                padding-bottom: 4px;
+                color: #E0E0E0;
+            }}
+            .header-title {{
+                font-size: 22px;
+                font-weight: 600;
+                margin: 0;
+                white-space: nowrap;
+                padding-left: 5px;
+            }}
+        </style>
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="data:image/png;base64,{logo_base64}" class="logo-image">
+            </div>
+            <div class="header-text">
+                <div class="header-title">
+                    <span style="font-size: 30px; font-weight: 700; color: #E0E0E0;">Professional Services</span> 
+                    <span style="color: #E0E0E0;">| Datacenter & Endpoint</span>
+                </div>
             </div>
         </div>
-    </div>
-    """
+        """
+    else:
+        # Light Mode Header
+        header_html = f"""
+        <style>
+            .header-container {{
+                display: flex;
+                align-items: flex-end;
+                padding-bottom: 1rem;
+                margin-top: 0.5rem;
+                background-color: #ffffff;
+            }}
+            .logo-container {{
+                margin-right: 12px;
+                line-height: 0;
+            }}
+            .logo-image {{
+                height: 50px;
+                display: block;
+            }}
+            .header-text {{
+                display: inline-block;
+                line-height: 1;
+                padding-bottom: 4px;
+                color: #000000;
+            }}
+            .header-title {{
+                font-size: 22px;
+                font-weight: 600;
+                margin: 0;
+                white-space: nowrap;
+                padding-left: 5px;
+            }}
+        </style>
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="data:image/png;base64,{logo_base64}" class="logo-image">
+            </div>
+            <div class="header-text">
+                <div class="header-title">
+                    <span style="font-size: 30px; font-weight: 700; color: #000000;">Professional Services</span> 
+                    <span style="color: #000000;">| Datacenter & Endpoint</span>
+                </div>
+            </div>
+        </div>
+        """
     st.markdown(header_html, unsafe_allow_html=True)
 
 # Initialize session state for progress tracking and UI preferences
@@ -171,32 +205,14 @@ with st.sidebar:
     # Dark Mode Toggle mit besserem Kontrast
     st.markdown("### Einstellungen", unsafe_allow_html=True)
     
-    # Zurück zum Toggle mit zusätzlichem CSS für bessere Sichtbarkeit im Dark Mode
-    st.markdown("""
-    <style>
-    /* Verbesserte Sichtbarkeit des Toggle-Elements im Dark Mode */
-    .st-af, .st-ag, .st-ah, .st-ai, .st-aj {
-        background-color: #2E7D4B !important;
-    }
-    .st-af[aria-checked="true"] {
-        background-color: #2E7D4B !important;
-    }
-    .st-af[aria-checked="true"]::before {
-        background-color: white !important;
-    }
-    /* Bessere Sichtbarkeit des Toggle-Knopfs */
-    .st-af::before {
-        background-color: white !important;
-    }
-    /* Label-Text im Dark Mode */
-    .st-ae {
-        color: #E0E0E0 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    # Einfaches, robustes Dark Mode Toggle
+    col1, col2 = st.columns([1, 4])
     
-    # Original-Toggle mit besserem Styling
-    dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
+    with col1:
+        st.write("🌙")
+        
+    with col2:
+        dark_mode = st.toggle("Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
     
     # Direkter JavaScript-Fix für die weißen Ecken (wird nur im Dark Mode eingebunden)
     if st.session_state.dark_mode:
