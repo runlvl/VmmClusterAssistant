@@ -236,6 +236,44 @@ with st.sidebar:
             background-color: var(--background-secondary) !important;
         }
         
+        /* Codefenster anpassen */
+        .stCodeBlock {
+            background-color: var(--background-tertiary) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+        pre {
+            background-color: var(--background-tertiary) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+        code {
+            background-color: var(--background-tertiary) !important;
+            color: var(--text-primary) !important;
+        }
+        .language-bash .token, .language-python .token, .language-powershell .token {
+            color: var(--text-primary) !important;
+        }
+        
+        /* Syntax-Hervorhebung für bessere Lesbarkeit */
+        .token.comment {
+            color: #6A9955 !important;
+        }
+        .token.string {
+            color: #CE9178 !important;
+        }
+        .token.number {
+            color: #B5CEA8 !important;
+        }
+        .token.keyword {
+            color: #569CD6 !important;
+        }
+        .token.function {
+            color: #DCDCAA !important;
+        }
+        .token.operator {
+            color: #D4D4D4 !important;
+        }
+        
         /* Optionaler Bechtle-Akzent für ausgewählte Elemente */
         .stButton > button[data-baseweb="button"]:active {
             background-color: var(--accent-color) !important;
