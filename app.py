@@ -108,29 +108,60 @@ if 'completed_steps' not in st.session_state:
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
-# Dunkelmodus-Einstellungen (später werden diese gespeichert)
-if 'dark_mode_settings_initialized' not in st.session_state:
-    # Lade die Einstellung aus dem Query Parameter oder lokalen Speicher, falls vorhanden
-    query_params = st.experimental_get_query_params()
-    if 'dark_mode' in query_params:
-        st.session_state.dark_mode = query_params['dark_mode'][0] == 'true'
-    st.session_state.dark_mode_settings_initialized = True
+# Persistenter Dunkelmodus über lokalen Browserspeicher implementieren
+import json
 
-# Das Dunkelmodus-Toggle wird im Burger-Menü platziert
-# Hier nur eine leere Sidebar-Definition
+# JavaScript für Cookie-basierte Persistenz über Seitenaktualisierungen hinweg
+dark_mode_js = """
+<script>
+// Funktion zum Speichern der Einstellung im lokalen Speicher
+function saveDarkModePreference(isDarkMode) {
+    localStorage.setItem('darkMode', isDarkMode ? 'true' : 'false');
+}
+
+// Funktion zum Laden der Einstellung aus dem lokalen Speicher
+function loadDarkModePreference() {
+    return localStorage.getItem('darkMode') === 'true';
+}
+
+// Beim Laden der Seite vorhandene Einstellung prüfen
+window.addEventListener('load', function() {
+    const storedPreference = loadDarkModePreference();
+    if (storedPreference !== null) {
+        // Nachricht an Streamlit senden, um Dark Mode zu setzen
+        window.parent.postMessage(
+            {type: 'streamlit:setDarkMode', value: storedPreference},
+            '*'
+        );
+    }
+});
+
+// Event-Listener für Änderungen an den Streamlit-Komponenten
+window.addEventListener('message', function(e) {
+    if (e.data.type === 'streamlit:darkModeChanged') {
+        saveDarkModePreference(e.data.value);
+    }
+});
+</script>
+"""
+
+# Füge das JavaScript der Seite hinzu
+st.markdown(dark_mode_js, unsafe_allow_html=True)
+
+# Vereinfachen - wir verwenden direkteren Ansatz mit CSS und Streamlit-Widgets
+
+# Füge das Dark Mode Toggle zur Sidebar hinzu (klassisch, als Fallback)
 with st.sidebar:
-    # Platzierung des Dark Mode Toggles am Ende der Sidebar für bessere Übersicht
-    st.markdown("---")
-    col1, col2 = st.columns([2, 8])
-    with col1:
-        st.write("🌙")
-    with col2:
-        dark_mode = st.toggle("Dunkelmodus", value=st.session_state.dark_mode, key="dark_mode_toggle", label_visibility="visible")
-        if dark_mode != st.session_state.dark_mode:
-            st.session_state.dark_mode = dark_mode
-            # Aktualisieren des URL-Parameters für Persistenz
-            st.experimental_set_query_params(dark_mode=str(dark_mode).lower())
-            st.rerun()
+    # Dunkelmodus-Toggle
+    st.markdown("### Einstellungen")
+    dark_mode = st.toggle("🌙 Dunkelmodus", value=st.session_state.dark_mode, key="dark_mode_toggle")
+    
+    # Speichere die Einstellung für Persistenz
+    if dark_mode != st.session_state.dark_mode:
+        st.session_state.dark_mode = dark_mode
+        # Speichere die Einstellung in einem versteckten Feld
+        st.session_state['_dark_mode_persistent'] = dark_mode
+        st.rerun()
 
 # Anwenden des Dark Mode Stylings wenn aktiviert
 if st.session_state.dark_mode:
@@ -584,9 +615,24 @@ with st.sidebar:
             background-color: #2D2D2D !important;
         }
         
-        /* Main menu background & container fixes */
+        /* Main menu background & container fixes - verstärkte Selektoren */
         .stOptionMenu, ul, [data-baseweb="select"], [data-baseweb="popover"],
-        [role="listbox"], [role="option"], .stSelectbox {
+        [role="listbox"], [role="option"], .stSelectbox, 
+        .option-menu li, .option-menu ul, .option-menu div, .css-z5fcl4,
+        div[class*="stSelectbox"] div, div[class*="stSelectbox"] li, div[class*="stSelectbox"] ul,
+        div[class*="Select"] div, div[class*="Select"] li, div[class*="Select"] ul,
+        .css-1s2u09g-control, .css-1q8dd3e,
+        .streamlit-option-menu {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+        }
+        
+        /* Streamlit Option Menu spezifische Fixes */
+        .streamlit-option-menu nav, 
+        .streamlit-option-menu div, 
+        .streamlit-option-menu ul, 
+        .streamlit-option-menu li,
+        .streamlit-option-menu a {
             background-color: #2D2D2D !important;
             color: #E0E0E0 !important;
         }
@@ -599,7 +645,7 @@ with st.sidebar:
         </style>
         """, unsafe_allow_html=True)
     
-    # Navigation
+    # Navigation - mit zusätzlichen CSS-Klassen für bessere Dark Mode-Unterstützung
     selected_step = option_menu(
         "Implementation Steps",
         implementation_steps,
@@ -609,6 +655,18 @@ with st.sidebar:
         ],
         menu_icon="list",
         default_index=st.session_state.current_step,
+        styles={
+            "container": {"background-color": "#2D2D2D" if st.session_state.dark_mode else "#fff"},
+            "icon": {"color": "#E0E0E0" if st.session_state.dark_mode else "#000000"},
+            "nav-link": {
+                "color": "#E0E0E0" if st.session_state.dark_mode else "#000000",
+                "background-color": "#2D2D2D" if st.session_state.dark_mode else "#fff"
+            },
+            "nav-link-selected": {
+                "background-color": "#2E7D4B" if st.session_state.dark_mode else "#1C5631",
+                "color": "#ffffff"
+            }
+        }
     )
     
     if selected_step != implementation_steps[st.session_state.current_step]:
