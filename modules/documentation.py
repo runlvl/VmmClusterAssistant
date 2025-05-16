@@ -924,12 +924,18 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                     }
                     
                     # Group functions by type
-                    st.markdown("### Test Functions")
-                    for func_name, func_script in function_scripts.items():
-                        if func_name.startswith("Test-"):
-                            col1, col2 = st.columns([3, 1])
+                    # Simplify the preview system to avoid session state issues
+                    
+                    # Test Functions
+                    test_functions = [f for f in function_scripts.keys() if f.startswith("Test-")]
+                    if test_functions:
+                        st.markdown("### Test Functions")
+                        for func_name in test_functions:
+                            func_script = function_scripts[func_name]
                             
-                            with col1:
+                            # Create expander for each function
+                            with st.expander(f"{func_name}", expanded=False):
+                                # Download button
                                 st.download_button(
                                     label=f"Download {func_name}",
                                     data=func_script,
@@ -937,25 +943,20 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                                     mime="text/plain",
                                     help=f"PowerShell function: {func_name}"
                                 )
-                            
-                            with col2:
-                                preview_key = f"preview_{func_name}"
-                                if st.button("Preview", key=preview_key):
-                                    st.session_state[preview_key] = not st.session_state.get(preview_key, False)
-                            
-                            if st.session_state.get(preview_key, False):
-                                st.markdown(f"**{func_name} Preview:**")
+                                
+                                # Show code preview
                                 st.code(func_script, language="powershell")
-                                if st.button("▲ Hide Preview", key=f"hide_{func_name}"):
-                                    st.session_state[preview_key] = False
-                                    st.rerun()
                     
-                    st.markdown("### Set Functions")
-                    for func_name, func_script in function_scripts.items():
-                        if func_name.startswith("Set-"):
-                            col1, col2 = st.columns([3, 1])
+                    # Set Functions
+                    set_functions = [f for f in function_scripts.keys() if f.startswith("Set-")]
+                    if set_functions:
+                        st.markdown("### Set Functions")
+                        for func_name in set_functions:
+                            func_script = function_scripts[func_name]
                             
-                            with col1:
+                            # Create expander for each function
+                            with st.expander(f"{func_name}", expanded=False):
+                                # Download button
                                 st.download_button(
                                     label=f"Download {func_name}",
                                     data=func_script,
@@ -963,25 +964,20 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                                     mime="text/plain",
                                     help=f"PowerShell function: {func_name}"
                                 )
-                            
-                            with col2:
-                                preview_key = f"preview_{func_name}"
-                                if st.button("Preview", key=preview_key):
-                                    st.session_state[preview_key] = not st.session_state.get(preview_key, False)
-                            
-                            if st.session_state.get(preview_key, False):
-                                st.markdown(f"**{func_name} Preview:**")
+                                
+                                # Show code preview
                                 st.code(func_script, language="powershell")
-                                if st.button("▲ Hide Preview", key=f"hide_{func_name}"):
-                                    st.session_state[preview_key] = False
-                                    st.rerun()
                     
-                    st.markdown("### New Functions")
-                    for func_name, func_script in function_scripts.items():
-                        if func_name.startswith("New-"):
-                            col1, col2 = st.columns([3, 1])
+                    # New Functions
+                    new_functions = [f for f in function_scripts.keys() if f.startswith("New-")]
+                    if new_functions:
+                        st.markdown("### New Functions")
+                        for func_name in new_functions:
+                            func_script = function_scripts[func_name]
                             
-                            with col1:
+                            # Create expander for each function
+                            with st.expander(f"{func_name}", expanded=False):
+                                # Download button
                                 st.download_button(
                                     label=f"Download {func_name}",
                                     data=func_script,
@@ -989,18 +985,31 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                                     mime="text/plain", 
                                     help=f"PowerShell function: {func_name}"
                                 )
-                            
-                            with col2:
-                                preview_key = f"preview_{func_name}"
-                                if st.button("Preview", key=preview_key):
-                                    st.session_state[preview_key] = not st.session_state.get(preview_key, False)
-                            
-                            if st.session_state.get(preview_key, False):
-                                st.markdown(f"**{func_name} Preview:**")
+                                
+                                # Show code preview 
                                 st.code(func_script, language="powershell")
-                                if st.button("▲ Hide Preview", key=f"hide_{func_name}"):
-                                    st.session_state[preview_key] = False
-                                    st.rerun()
+                    
+                    # Other Functions
+                    other_functions = [f for f in function_scripts.keys() 
+                                     if not (f.startswith("Test-") or f.startswith("Set-") or f.startswith("New-"))]
+                    if other_functions:
+                        st.markdown("### Other Functions")
+                        for func_name in other_functions:
+                            func_script = function_scripts[func_name]
+                            
+                            # Create expander for each function
+                            with st.expander(f"{func_name}", expanded=False):
+                                # Download button
+                                st.download_button(
+                                    label=f"Download {func_name}",
+                                    data=func_script,
+                                    file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
+                                    mime="text/plain",
+                                    help=f"PowerShell function: {func_name}"
+                                )
+                                
+                                # Show code preview
+                                st.code(func_script, language="powershell")
                     else:
                         st.write("No individual functions could be extracted from the script. This might happen if the script doesn't contain properly formatted PowerShell functions.")
             
