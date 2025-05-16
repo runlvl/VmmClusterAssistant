@@ -53,8 +53,7 @@ def _save_network_configuration(management_network, migration_network, vm_networ
         st.session_state.completed_steps = set()
     
     st.session_state.completed_steps.add(3)  # Mark network configuration step as completed
-    st.session_state.current_step = 4  # Move to next step (storage configuration)
-    st.rerun()
+    st.session_state.current_step = 5  # Move to next step (storage configuration)
 
 def _render_network_architecture_settings(storage_type):
     """Render network architecture settings UI component."""
