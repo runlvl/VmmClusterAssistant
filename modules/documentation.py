@@ -227,80 +227,34 @@ def _render_download_section(project_name):
             with st.expander("PowerShell Implementation Scripts", expanded=True):
                 st.write("Download specific PowerShell scripts for your implementation:")
                 
-                # 1. Combined script file (all scripts)
+                # 1. Get combined scripts (all and by deployment type)
+                # All scripts combined
                 all_scripts_content = ""
+                hyperv_scripts_content = ""
+                scvmm_scripts_content = ""
+                
+                # Extract scripts and organize them
                 for category in scripts:
-                    if isinstance(scripts[category], dict):
+                    if category == "by_task" and isinstance(scripts[category], dict):
+                        # Handle by_task structure separately
+                        continue
+                    elif isinstance(scripts[category], dict):
                         for script_name, script_text in scripts[category].items():
-                            if isinstance(script_text, str):  # Make sure it's a string
+                            if isinstance(script_text, str):
                                 all_scripts_content += f"# {script_name}\n{script_text}\n\n"
+                                
+                                # Add to Hyper-V scripts if appropriate
+                                if category == "common" or category == "hyperv":
+                                    hyperv_scripts_content += f"# {script_name}\n{script_text}\n\n"
+                                
+                                # Add to SCVMM scripts if appropriate
+                                if category == "common" or category == "scvmm":
+                                    scvmm_scripts_content += f"# {script_name}\n{script_text}\n\n"
                 
-                st.download_button(
-                    label="Download All PowerShell Scripts (Combined)",
-                    data=all_scripts_content,
-                    file_name=f"{project_name.replace(' ', '_')}_All_Implementation_Scripts.ps1",
-                    mime="text/plain",
-                    help="All PowerShell implementation scripts combined in a single file"
-                )
-                
-                st.markdown("---")
-                
-                # 2. Scripts by Deployment Type
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    # Hyper-V only scripts
-                    hyperv_scripts_content = ""
-                    
-                    # Add common scripts first
-                    if "common" in scripts and isinstance(scripts["common"], dict):
-                        for script_name, script_text in scripts["common"].items():
-                            if isinstance(script_text, str):
-                                hyperv_scripts_content += f"# {script_name}\n{script_text}\n\n"
-                    
-                    # Add Hyper-V specific scripts
-                    if "hyperv" in scripts and isinstance(scripts["hyperv"], dict):
-                        for script_name, script_text in scripts["hyperv"].items():
-                            if isinstance(script_text, str):
-                                hyperv_scripts_content += f"# {script_name}\n{script_text}\n\n"
-                    
-                    st.download_button(
-                        label="Download Hyper-V Only Scripts",
-                        data=hyperv_scripts_content,
-                        file_name=f"{project_name.replace(' ', '_')}_HyperV_Scripts.ps1",
-                        mime="text/plain",
-                        help="PowerShell scripts for pure Hyper-V cluster implementation"
-                    )
-                
-                with col2:
-                    # SCVMM scripts
-                    scvmm_scripts_content = ""
-                    
-                    # Add common scripts first
-                    if "common" in scripts and isinstance(scripts["common"], dict):
-                        for script_name, script_text in scripts["common"].items():
-                            if isinstance(script_text, str):
-                                scvmm_scripts_content += f"# {script_name}\n{script_text}\n\n"
-                    
-                    # Add SCVMM specific scripts
-                    if "scvmm" in scripts and isinstance(scripts["scvmm"], dict):
-                        for script_name, script_text in scripts["scvmm"].items():
-                            if isinstance(script_text, str):
-                                scvmm_scripts_content += f"# {script_name}\n{script_text}\n\n"
-                    
-                    st.download_button(
-                        label="Download SCVMM Scripts",
-                        data=scvmm_scripts_content,
-                        file_name=f"{project_name.replace(' ', '_')}_SCVMM_Scripts.ps1",
-                        mime="text/plain",
-                        help="PowerShell scripts for Hyper-V cluster with SCVMM implementation"
-                    )
-                
-                st.markdown("---")
-                
-                # 3. Scripts by Task Category
-                st.subheader("Download Scripts by Task Category")
-                task_cols = st.columns(3)
+                # Get script contents by task, for each deployment type
+                hyperv_by_task = {}
+                scvmm_by_task = {}
+                all_by_task = {}
                 
                 # Define task categories
                 task_categories = [
@@ -311,29 +265,134 @@ def _render_download_section(project_name):
                     ("security", "Security Configuration")
                 ]
                 
-                # Create download buttons for each task category
-                for i, (task_key, task_name) in enumerate(task_categories):
-                    col_index = i % 3
-                    
-                    with task_cols[col_index]:
-                        task_content = ""
-                        
-                        if "by_task" in scripts and task_key in scripts["by_task"] and isinstance(scripts["by_task"][task_key], dict):
-                            for script_name, script_text in scripts["by_task"][task_key].items():
+                # Extract task-specific scripts
+                if "by_task" in scripts and isinstance(scripts["by_task"], dict):
+                    for task_key, task_dict in scripts["by_task"].items():
+                        if isinstance(task_dict, dict):
+                            all_by_task[task_key] = ""
+                            hyperv_by_task[task_key] = ""
+                            scvmm_by_task[task_key] = ""
+                            
+                            for script_name, script_text in task_dict.items():
                                 if isinstance(script_text, str):
-                                    task_content += f"# {script_name}\n{script_text}\n\n"
+                                    # Add script to 'all' tasks
+                                    all_by_task[task_key] += f"# {script_name}\n{script_text}\n\n"
+                                    
+                                    # Determine if this script is for Hyper-V, SCVMM, or both
+                                    if "SCVMM" in script_name or "VMM" in script_name:
+                                        scvmm_by_task[task_key] += f"# {script_name}\n{script_text}\n\n"
+                                    elif "Hyper-V" in script_name or "HyperV" in script_name:
+                                        hyperv_by_task[task_key] += f"# {script_name}\n{script_text}\n\n"
+                                    else:
+                                        # Common script, add to both
+                                        hyperv_by_task[task_key] += f"# {script_name}\n{script_text}\n\n"
+                                        scvmm_by_task[task_key] += f"# {script_name}\n{script_text}\n\n"
+                
+                # 2. Download tabs for different download options
+                script_tabs = st.tabs(["Combined Scripts", "Scripts by Deployment Type", "Scripts by Task"])
+                
+                # Tab 1: Combined Scripts
+                with script_tabs[0]:
+                    st.download_button(
+                        label="Download All PowerShell Scripts (Combined)",
+                        data=all_scripts_content,
+                        file_name=f"{project_name.replace(' ', '_')}_All_Implementation_Scripts.ps1",
+                        mime="text/plain",
+                        help="All PowerShell implementation scripts combined in a single file"
+                    )
+                
+                # Tab 2: Scripts by Deployment Type
+                with script_tabs[1]:
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.subheader("Hyper-V Only Scripts")
+                        st.download_button(
+                            label="Download Complete Hyper-V Scripts",
+                            data=hyperv_scripts_content,
+                            file_name=f"{project_name.replace(' ', '_')}_HyperV_All_Scripts.ps1",
+                            mime="text/plain",
+                            help="PowerShell scripts for pure Hyper-V cluster implementation"
+                        )
                         
-                        if task_content:
-                            st.download_button(
-                                label=f"Download {task_name} Scripts",
-                                data=task_content,
-                                file_name=f"{project_name.replace(' ', '_')}_{task_key.capitalize()}_Scripts.ps1",
-                                mime="text/plain",
-                                help=f"PowerShell scripts for {task_name.lower()}"
-                            )
+                        # Add individual task scripts for Hyper-V
+                        for task_key, task_name in task_categories:
+                            if task_key in hyperv_by_task and hyperv_by_task[task_key]:
+                                st.download_button(
+                                    label=f"Hyper-V: {task_name} Script",
+                                    data=hyperv_by_task[task_key],
+                                    file_name=f"{project_name.replace(' ', '_')}_HyperV_{task_key.capitalize()}.ps1",
+                                    mime="text/plain",
+                                    help=f"Hyper-V-specific {task_name.lower()} script"
+                                )
+                    
+                    with col2:
+                        st.subheader("SCVMM Scripts")
+                        st.download_button(
+                            label="Download Complete SCVMM Scripts",
+                            data=scvmm_scripts_content,
+                            file_name=f"{project_name.replace(' ', '_')}_SCVMM_All_Scripts.ps1",
+                            mime="text/plain",
+                            help="PowerShell scripts for Hyper-V cluster with SCVMM implementation"
+                        )
+                        
+                        # Add individual task scripts for SCVMM
+                        for task_key, task_name in task_categories:
+                            if task_key in scvmm_by_task and scvmm_by_task[task_key]:
+                                st.download_button(
+                                    label=f"SCVMM: {task_name} Script",
+                                    data=scvmm_by_task[task_key],
+                                    file_name=f"{project_name.replace(' ', '_')}_SCVMM_{task_key.capitalize()}.ps1",
+                                    mime="text/plain",
+                                    help=f"SCVMM-specific {task_name.lower()} script"
+                                )
+                
+                # Tab 3: Scripts by Task with deployment type options
+                with script_tabs[2]:
+                    # Create a radio button for selecting deployment type
+                    deployment_selection = st.radio(
+                        "Select Deployment Type for Tasks:",
+                        ["All Tasks", "Hyper-V Only Tasks", "SCVMM Tasks"],
+                        horizontal=True
+                    )
+                    
+                    # Display task-specific scripts based on selection
+                    for task_key, task_name in task_categories:
+                        # Skip this task if it doesn't have scripts for the selected deployment type
+                        if (deployment_selection == "Hyper-V Only Tasks" and (task_key not in hyperv_by_task or not hyperv_by_task[task_key])) or \
+                           (deployment_selection == "SCVMM Tasks" and (task_key not in scvmm_by_task or not scvmm_by_task[task_key])) or \
+                           (deployment_selection == "All Tasks" and (task_key not in all_by_task or not all_by_task[task_key])):
+                            continue
+                            
+                        st.markdown(f"#### {task_name}")
+                        
+                        # Choose the appropriate script content based on selection
+                        if deployment_selection == "Hyper-V Only Tasks":
+                            task_content = hyperv_by_task[task_key]
+                            prefix = "HyperV"
+                        elif deployment_selection == "SCVMM Tasks":
+                            task_content = scvmm_by_task[task_key]
+                            prefix = "SCVMM"
                         else:
-                            # If no scripts found for this category, show disabled button
-                            st.write(f"{task_name} Scripts (None available)")
+                            task_content = all_by_task[task_key]
+                            prefix = "All"
+                        
+                        # Create download button for the task
+                        st.download_button(
+                            label=f"Download {task_name} Script",
+                            data=task_content,
+                            file_name=f"{project_name.replace(' ', '_')}_{prefix}_{task_key.capitalize()}.ps1",
+                            mime="text/plain",
+                            help=f"PowerShell script for {task_name.lower()}"
+                        )
+                        
+                        # Show a preview of the script (first few lines)
+                        with st.expander(f"Preview {task_name} Script", expanded=False):
+                            lines = task_content.split('\n')
+                            preview_lines = '\n'.join(lines[:min(20, len(lines))])
+                            if len(lines) > 20:
+                                preview_lines += "\n...(more lines)..."
+                            st.code(preview_lines, language="powershell")
             
             # Current deployment type highlight
             current_type = "Hyper-V Only" if deployment_type == "hyperv" else "SCVMM"
