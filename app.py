@@ -152,9 +152,15 @@ st.markdown(dark_mode_js, unsafe_allow_html=True)
 
 # Füge das Dark Mode Toggle zur Sidebar hinzu (klassisch, als Fallback)
 with st.sidebar:
-    # Dark Mode Toggle
+    # Dark Mode Toggle mit besserem Kontrast und Visibility
     st.markdown("### Einstellungen", unsafe_allow_html=True)
-    dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
+    
+    # Verwende Checkbox statt Toggle für bessere Sichtbarkeit im Dark Mode
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.write("🌙")
+    with col2:
+        dark_mode = st.checkbox("Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
     
     # Direkter JavaScript-Fix für die weißen Ecken (wird nur im Dark Mode eingebunden)
     if st.session_state.dark_mode:
