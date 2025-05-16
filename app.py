@@ -660,6 +660,31 @@ with st.sidebar:
             background-color: #2D2D2D !important;
         }
         
+        /* Runde Ecken im Menü - direkte Überschreibung der Ecken */
+        div.streamlit-option-menu .menu-container,
+        div.streamlit-option-menu,
+        .streamlit-option-menu .nav,
+        button[kind="secondary"],
+        button[data-baseweb="button"],
+        .streamlit-component,
+        .st-emotion-cache-*,
+        [role="navigation"] {
+            border-radius: 0 !important;
+            background-color: #2D2D2D !important;
+        }
+        
+        /* Ecken-Elemente speziell im Scroll-Steuerbereich */
+        [data-testid="ScrollToBottomContainer"],
+        [data-testid="ScrollToTopContainer"],
+        [data-testid="stVerticalBlock"] button,
+        div.st-emotion-cache-1l269u1,
+        div.st-emotion-cache-1r6slb0,
+        iframe,
+        .element-container {
+            background-color: #2D2D2D !important;
+            border-radius: 0 !important;
+        }
+        
         /* Text-Überschriften in der Sidebar */
         [data-testid="stSidebar"] h3 {
             color: #E0E0E0 !important;
