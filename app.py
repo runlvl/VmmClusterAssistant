@@ -103,6 +103,7 @@ with st.sidebar:
             --background-tertiary: #3A3A3A;
             --text-primary: #E0E0E0;
             --text-secondary: #B0B0B0;
+            --light-bg: #454545;  /* Hellgraue Farbe statt Weiß */
             --accent-color: #2E7D4B;
             --border-color: #4D4D4D;
             --hover-bg: #3E3E3E;
@@ -185,14 +186,35 @@ with st.sidebar:
             background-color: rgba(46, 125, 75, 0.2) !important;
             color: var(--text-primary) !important;
         }
+        .stInfo > div {
+            background-color: var(--background-tertiary) !important;
+            color: var(--text-primary) !important;
+        }
         .stSuccess {
             background-color: rgba(46, 125, 75, 0.2) !important;
+        }
+        .stSuccess > div {
+            background-color: var(--background-tertiary) !important;
+            color: var(--text-primary) !important;
         }
         .stWarning {
             background-color: rgba(255, 182, 0, 0.2) !important;
         }
+        .stWarning > div {
+            background-color: var(--background-tertiary) !important;
+            color: var(--text-primary) !important;
+        }
         .stError {
             background-color: rgba(255, 0, 0, 0.2) !important;
+        }
+        .stError > div {
+            background-color: var(--background-tertiary) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        /* Weiße Hintergründe ersetzen */
+        [style*="background-color: white"], [style*="background-color: #fff"], [style*="background-color: rgb(255, 255, 255)"] {
+            background-color: var(--light-bg) !important;
         }
         
         /* Buttons und Formularelemente */

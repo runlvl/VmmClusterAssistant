@@ -147,9 +147,22 @@ def render_software_requirements():
     # Tab 2: SCVMM (Optional)#
     ##########################
     with scvmm_tab:
-        use_scvmm = st.checkbox("Use System Center Virtual Machine Manager (SCVMM)", 
-                               value=(deployment_type == "scvmm"),
-                               help="SCVMM provides centralized management but is completely optional")
+        with st.container(border=True):
+            st.markdown("### System Center Virtual Machine Manager (SCVMM)")
+            st.markdown("""
+            SCVMM ist eine optionale Komponente, die für die reine Hyper-V-Cluster-Implementierung nicht erforderlich ist.
+            SCVMM bietet folgende Vorteile:
+            - Zentralisierte Verwaltung mehrerer Cluster
+            - Erweitertes Template-Management
+            - Self-Service Portal
+            - Umfangreiche Automatisierungsfeatures
+            
+            Mit SCVMM erhöht sich jedoch auch die Komplexität der Umgebung und es fallen zusätzliche Lizenzkosten an.
+            """)
+            
+            use_scvmm = st.checkbox("System Center Virtual Machine Manager (SCVMM) verwenden", 
+                                   value=(deployment_type == "scvmm"),
+                                   help="SCVMM-Integration ist vollständig optional")
         
         if use_scvmm:
             # System Center and SQL Server Requirements section
@@ -297,6 +310,20 @@ def render_software_requirements():
             for practice in scvmm_best_practices:
                 st.markdown(f"- {practice}")
         else:
+            st.success("✅ Reine Hyper-V Cluster-Konfiguration ausgewählt. Die UI wurde für eine vereinfachte Implementierung optimiert.")
+            
+            # Zeige einfache Zusammenfassung für Hyper-V-only Implementierung
+            st.info("""
+            ### Nächste Schritte für Hyper-V-Cluster
+            Da Sie sich für eine reine Hyper-V-Implementierung entschieden haben, werden die folgenden Module vereinfacht:
+            
+            1. **Netzwerkkonfiguration**: Fokus auf Cluster- und VM-Netzwerke, ohne SCVMM-spezifische Netzwerkeinstellungen
+            2. **Storage-Konfiguration**: Optimiert für Cluster Shared Volumes ohne SCVMM-Integration
+            3. **Dokumentation**: Generierung von PowerShell-Skripten speziell für Hyper-V-Cluster
+            
+            Diese Vereinfachung reduziert die Komplexität und beschleunigt die Implementierung.
+            """)
+            
             # Default values for when not using SCVMM
             vmm_version = "None"
             sql_version = "None"
@@ -306,8 +333,6 @@ def render_software_requirements():
             service_account = ""
             dkm_container = ""
             vmm_server_name = ""
-            
-            st.info("System Center Virtual Machine Manager (SCVMM) is optional and not selected. Your Hyper-V cluster will operate without centralized management.")
             
             # Show some basic advantages of SCVMM
             st.header("SCVMM Benefits (Not Selected)")
