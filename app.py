@@ -104,7 +104,7 @@ if 'current_step' not in st.session_state:
 if 'completed_steps' not in st.session_state:
     st.session_state.completed_steps = set()
 
-# Dark Mode-Einstellungen initialisieren
+# Einfache Dark Mode-Einstellungen ohne Cookies
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
@@ -225,7 +225,7 @@ if st.session_state.dark_mode:
         """, unsafe_allow_html=True)
     
     # Apply custom styles based on theme
-    if st.session_state.dark_mode:
+    if 'dark_mode' in st.session_state and st.session_state.dark_mode:
         st.markdown("""
         <style>
         /* Dunkelgraue Farbpalette für den Dark Mode */
