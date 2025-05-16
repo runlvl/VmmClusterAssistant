@@ -108,13 +108,29 @@ if 'completed_steps' not in st.session_state:
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
-# Dunkelmodus-Schalter in der Sidebar
+# Dunkelmodus-Einstellungen (später werden diese gespeichert)
+if 'dark_mode_settings_initialized' not in st.session_state:
+    # Lade die Einstellung aus dem Query Parameter oder lokalen Speicher, falls vorhanden
+    query_params = st.experimental_get_query_params()
+    if 'dark_mode' in query_params:
+        st.session_state.dark_mode = query_params['dark_mode'][0] == 'true'
+    st.session_state.dark_mode_settings_initialized = True
+
+# Das Dunkelmodus-Toggle wird im Burger-Menü platziert
+# Hier nur eine leere Sidebar-Definition
 with st.sidebar:
-    # Dunkelmodus-Schalter
-    dark_mode = st.toggle("🌙 Dunkelmodus", value=st.session_state.dark_mode, key="dark_mode_toggle")
-    if dark_mode != st.session_state.dark_mode:
-        st.session_state.dark_mode = dark_mode
-        st.rerun()
+    # Platzierung des Dark Mode Toggles am Ende der Sidebar für bessere Übersicht
+    st.markdown("---")
+    col1, col2 = st.columns([2, 8])
+    with col1:
+        st.write("🌙")
+    with col2:
+        dark_mode = st.toggle("Dunkelmodus", value=st.session_state.dark_mode, key="dark_mode_toggle", label_visibility="visible")
+        if dark_mode != st.session_state.dark_mode:
+            st.session_state.dark_mode = dark_mode
+            # Aktualisieren des URL-Parameters für Persistenz
+            st.experimental_set_query_params(dark_mode=str(dark_mode).lower())
+            st.rerun()
 
 # Anwenden des Dark Mode Stylings wenn aktiviert
 if st.session_state.dark_mode:
@@ -552,8 +568,8 @@ with st.sidebar:
     if 'dark_mode' in st.session_state and st.session_state.dark_mode:
         st.markdown("""
         <style>
-        /* Dark mode for option menu */
-        .nav-link {
+        /* Dark mode for option menu - umfassendere Selektoren */
+        .nav-link, .nav-item, .nav, .menu-title, .menu-container {
             background-color: #2D2D2D !important;
             color: #E0E0E0 !important;
         }
@@ -566,6 +582,19 @@ with st.sidebar:
         }
         div[data-testid="stVerticalBlock"] nav {
             background-color: #2D2D2D !important;
+        }
+        
+        /* Main menu background & container fixes */
+        .stOptionMenu, ul, [data-baseweb="select"], [data-baseweb="popover"],
+        [role="listbox"], [role="option"], .stSelectbox {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+        }
+        
+        /* Option Menu Icon Color */
+        .bi-list, .bi-info-circle, .bi-download, .bi-cpu, .bi-gear, 
+        .bi-diagram-3, .bi-hdd, .bi-shield-lock, .bi-file-earmark-text {
+            color: #E0E0E0 !important;
         }
         </style>
         """, unsafe_allow_html=True)
