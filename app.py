@@ -152,9 +152,9 @@ st.markdown(dark_mode_js, unsafe_allow_html=True)
 
 # Füge das Dark Mode Toggle zur Sidebar hinzu (klassisch, als Fallback)
 with st.sidebar:
-    # Dunkelmodus-Toggle
-    st.markdown("### Einstellungen")
-    dark_mode = st.toggle("🌙 Dunkelmodus", value=st.session_state.dark_mode, key="dark_mode_toggle")
+    # Dark Mode Toggle
+    st.markdown("### Einstellungen", unsafe_allow_html=True)
+    dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
     
     # Speichere die Einstellung für Persistenz
     if dark_mode != st.session_state.dark_mode:
@@ -622,8 +622,32 @@ with st.sidebar:
         div[class*="stSelectbox"] div, div[class*="stSelectbox"] li, div[class*="stSelectbox"] ul,
         div[class*="Select"] div, div[class*="Select"] li, div[class*="Select"] ul,
         .css-1s2u09g-control, .css-1q8dd3e,
-        .streamlit-option-menu {
+        .streamlit-option-menu,
+        .nav, .nav-item, .nav-menu, .stActionButton,
+        .st-emotion-cache-19rxjzo, .st-emotion-cache-ocqkz7,
+        nav[data-testid], div[data-baseweb] {
             background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+        }
+        
+        /* Dark Mode für bestimmte UI-Elemente in den Menüs und Navigationskomponenten */
+        .stOptionMenu, div.streamlit-option-menu div, div.streamlit-option-menu ul,
+        div.streamlit-option-menu li, div.streamlit-option-menu nav,
+        div.css-1q8dd3e, div.css-z5fcl4, div.css-16idsys,
+        .st-emotion-cache-19rxjzo, .st-emotion-cache-7ym5gk, 
+        .st-emotion-cache-16idsys, .st-emotion-cache-binzgt {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+        }
+        
+        /* Text-Überschriften in der Sidebar */
+        [data-testid="stSidebar"] h3 {
+            color: #E0E0E0 !important;
+        }
+        
+        /* Toggle Button im Dark Mode */
+        [data-testid="baseButton-secondary"] {
+            background-color: #2E7D4B !important;
             color: #E0E0E0 !important;
         }
         
