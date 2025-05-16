@@ -10,6 +10,7 @@ from utils.network_validator import (
     validate_network_configuration,
     create_network_visualization
 )
+from utils.navigation import go_to_software, go_to_storage
 
 # Helper functions for network configuration
 
@@ -587,9 +588,9 @@ def render_network_configuration():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Navigate to software requirements (index 3)
-        st.button("Previous: Software Requirements", key="prev_software", 
-                 on_click=lambda: setattr(st.session_state, "current_step", 3))
+        # Navigate to software requirements using dedicated function
+        if st.button("Previous: Software Requirements", key="prev_software"):
+            go_to_software()
     
     with col2:
         next_button = st.button("Next: Storage Configuration", key="next_storage")
@@ -602,5 +603,5 @@ def render_network_configuration():
                     dedicated_nics, ipsec_enabled, separate_networks, hyper_v_hosts,
                     network_adapters, logical_networks, vm_networks
                 )
-                # Update step counter to move to storage configuration (index 5)
-                st.session_state.current_step = 5
+                # Navigate to storage configuration using dedicated function
+                go_to_storage()

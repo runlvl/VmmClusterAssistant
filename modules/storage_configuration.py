@@ -6,6 +6,7 @@ from utils.storage_validator import (
     create_storage_visualization,
     estimate_storage_needs
 )
+from utils.navigation import go_to_network, go_to_documentation
 
 def _get_intro_text(deployment_type):
     """Get introduction text based on deployment type."""
@@ -544,9 +545,9 @@ def render_storage_configuration():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Navigate to network configuration (index 4)
-        st.button("Previous: Network Configuration", key="prev_network", 
-                 on_click=lambda: setattr(st.session_state, "current_step", 4))
+        # Navigate to network configuration using dedicated function
+        if st.button("Previous: Network Configuration", key="prev_network"):
+            go_to_network()
     
     with col2:
         next_button = st.button("Next: Generate Documentation", key="next_doc")
@@ -559,5 +560,5 @@ def render_storage_configuration():
                     shared_between_clusters, redundancy, storage_connectivity, 
                     filesystem, is_s2d, hyper_v_hosts
                 )
-                # Update step counter to move to documentation (index 6 now, after removing Security Settings)
-                st.session_state.current_step = 6
+                # Navigate to documentation using dedicated function
+                go_to_documentation()

@@ -11,6 +11,7 @@ from utils.documentation_generator import (
     export_documentation_to_file,
     export_scripts_to_files
 )
+from utils.navigation import go_to_storage
 
 # Helper functions for documentation generation
 
