@@ -103,6 +103,117 @@ with st.sidebar:
     st.markdown("### Einstellungen")
     dark_mode = st.toggle("Dunkelmodus", value=False, key="dark_mode")
     
+    # Hinweis zum Dark Mode
+    if dark_mode:
+        st.info("Dunkelmodus aktiviert. Für optimale Ergebnisse bitte Seite neu laden.")
+        
+        # Apply comprehensive dark mode styling
+        st.markdown("""
+        <style>
+        /* Global Dark Theme */
+        html, body, [class*="css"] {
+            color: #E0E0E0 !important;
+            background-color: #1E1E1E !important;
+        }
+        
+        .main .block-container {
+            background-color: #1E1E1E !important;
+        }
+        
+        /* Header & Logo */
+        header {
+            background-color: #1E1E1E !important;
+            color: #E0E0E0 !important;
+        }
+        
+        .header-container, .header-title, .header-text span {
+            color: #E0E0E0 !important;
+            background-color: #1E1E1E !important;
+        }
+        
+        /* All text elements */
+        h1, h2, h3, h4, h5, h6, p, span, a, div, li, ul, ol, label, caption {
+            color: #E0E0E0 !important;
+        }
+        
+        /* Main menu */
+        .css-1q8dd3e {
+            background-color: #2D2D2D !important;
+        }
+        .nav-link {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+        }
+        .nav-link:hover {
+            background-color: #3A3A3A !important;
+        }
+        .nav-link.active {
+            background-color: #2E7D4B !important;
+        }
+        
+        /* Lists and items */
+        .stMarkdown ul, .stMarkdown ol {
+            color: #E0E0E0 !important;
+        }
+        .stMarkdown li::marker {
+            color: #2E7D4B !important;
+        }
+        
+        /* Buttons */
+        .stButton button {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+            border-color: #4D4D4D !important;
+        }
+        .stButton button:hover {
+            background-color: #3A3A3A !important;
+        }
+        
+        /* Info boxes */
+        .stAlert {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+        }
+        
+        /* Code blocks */
+        .stCodeBlock {
+            background-color: #2D2D2D !important;
+        }
+        pre, code {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+        }
+        
+        /* Tables */
+        table, th, td {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+            border-color: #4D4D4D !important;
+        }
+        .stDataFrame {
+            background-color: #2D2D2D !important;
+        }
+        
+        /* Option menu container & all items within */
+        [data-testid="stSidebar"] {
+            background-color: #2D2D2D !important;
+        }
+        [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+            background-color: #2D2D2D !important;
+        }
+        [data-testid="stSidebar"] .stMarkdown {
+            color: #E0E0E0 !important;
+        }
+        
+        /* Main menu */
+        div.stVerticalBlock div[role="listbox"], 
+        div[role="listbox"] {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    
     # Apply custom styles based on theme
     if dark_mode:
         st.markdown("""
