@@ -545,12 +545,14 @@ def render_storage_configuration():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Navigate to network configuration using dedicated function
-        if st.button("Previous: Network Configuration", key="prev_network"):
-            go_to_network()
+        # Direct navigation to Network Configuration
+        prev_button = st.button("← Network Configuration", use_container_width=True)
+        if prev_button:
+            st.session_state.current_step = 4
+            st.rerun()
     
     with col2:
-        next_button = st.button("Next: Generate Documentation", key="next_doc")
+        next_button = st.button("Documentation →", use_container_width=True)
         if next_button:
             if not validation_results["status"]:
                 st.error("Please correct the storage configuration errors before proceeding.")
@@ -560,5 +562,6 @@ def render_storage_configuration():
                     shared_between_clusters, redundancy, storage_connectivity, 
                     filesystem, is_s2d, hyper_v_hosts
                 )
-                # Navigate to documentation using dedicated function
-                go_to_documentation()
+                # Direct navigation to Documentation
+                st.session_state.current_step = 6
+                st.rerun()

@@ -1164,12 +1164,15 @@ def render_documentation():
     
     # Previous button always goes to Storage Configuration (now the step before Documentation)
     with col1:
-        # Navigate to storage configuration using dedicated function
-        if st.button("Previous: Storage Configuration", key="prev_storage"):
-            go_to_storage()
+        # Direct navigation to Storage Configuration
+        prev_button = st.button("← Storage Configuration", use_container_width=True)
+        if prev_button:
+            st.session_state.current_step = 5
+            st.rerun()
     
     with col2:
-        # Navigate to introduction using dedicated function
-        if st.button("Return to Introduction", key="return_intro"):
-            from utils.navigation import go_to_introduction
-            go_to_introduction()
+        # Direct navigation to Introduction
+        return_button = st.button("Return to Introduction", use_container_width=True)
+        if return_button:
+            st.session_state.current_step = 0
+            st.rerun()
