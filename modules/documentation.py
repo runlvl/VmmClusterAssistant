@@ -200,7 +200,9 @@ def _render_download_section(project_name):
     if "documentation_generated" not in st.session_state:
         return
     
-    st.header("Download VMM Implementation Files")
+    deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    header_text = "Download Hyper-V Cluster Implementation Files" if deployment_type == "hyperv" else "Download VMM Implementation Files"
+    st.header(header_text)
     
     col1, col2 = st.columns(2)
     
@@ -694,7 +696,7 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                                             st.session_state[f"show_preview_{task_key}"] = False
                                             st.rerun()
                 
-                # Tab 2: Scripts by Function
+                # Tab 2: Scripts by Function - Simplified view to avoid nesting issues
                 with script_tabs[1]:
                     st.write("Download individual PowerShell functions for easier editing:")
                     
@@ -923,93 +925,89 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
 }"""
                     }
                     
-                    # Group functions by type
-                    # Simplify the preview system to avoid session state issues
+                    # Use a simpler approach with a function selector
+                    # Group functions by prefix
+                    grouped_functions = {
+                        "Test Functions": [f for f in function_scripts.keys() if f.startswith("Test-")],
+                        "Set Functions": [f for f in function_scripts.keys() if f.startswith("Set-")],
+                        "New Functions": [f for f in function_scripts.keys() if f.startswith("New-")],
+                        "Other Functions": [f for f in function_scripts.keys() 
+                                         if not (f.startswith("Test-") or f.startswith("Set-") or f.startswith("New-"))]
+                    }
                     
-                    # Test Functions
-                    test_functions = [f for f in function_scripts.keys() if f.startswith("Test-")]
-                    if test_functions:
-                        st.markdown("### Test Functions")
-                        for func_name in test_functions:
-                            func_script = function_scripts[func_name]
-                            
-                            # Create expander for each function
-                            with st.expander(f"{func_name}", expanded=False):
-                                # Download button
-                                st.download_button(
-                                    label=f"Download {func_name}",
-                                    data=func_script,
-                                    file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
-                                    mime="text/plain",
-                                    help=f"PowerShell function: {func_name}"
-                                )
-                                
-                                # Show code preview
-                                st.code(func_script, language="powershell")
+                    # Create a selector for function groups
+                    function_groups = list(grouped_functions.keys())
+                    selected_group = st.selectbox("Select Function Type:", function_groups)
                     
-                    # Set Functions
-                    set_functions = [f for f in function_scripts.keys() if f.startswith("Set-")]
-                    if set_functions:
-                        st.markdown("### Set Functions")
-                        for func_name in set_functions:
-                            func_script = function_scripts[func_name]
-                            
-                            # Create expander for each function
-                            with st.expander(f"{func_name}", expanded=False):
-                                # Download button
-                                st.download_button(
-                                    label=f"Download {func_name}",
-                                    data=func_script,
-                                    file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
-                                    mime="text/plain",
-                                    help=f"PowerShell function: {func_name}"
-                                )
-                                
-                                # Show code preview
-                                st.code(func_script, language="powershell")
+                    # Get functions for the selected group
+                    selected_functions = grouped_functions[selected_group]
                     
-                    # New Functions
-                    new_functions = [f for f in function_scripts.keys() if f.startswith("New-")]
-                    if new_functions:
-                        st.markdown("### New Functions")
-                        for func_name in new_functions:
-                            func_script = function_scripts[func_name]
+                    if not selected_functions:
+                        st.write(f"No {selected_group.lower()} available.")
+                    else:
+                        # Function selector
+                        selected_function = st.selectbox(
+                            f"Select a function from {selected_group}:", 
+                            selected_functions
+                        )
+                        
+                        # Display selected function
+                        if selected_function:
+                            func_script = function_scripts[selected_function]
                             
-                            # Create expander for each function
-                            with st.expander(f"{func_name}", expanded=False):
-                                # Download button
-                                st.download_button(
-                                    label=f"Download {func_name}",
-                                    data=func_script,
-                                    file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
-                                    mime="text/plain", 
-                                    help=f"PowerShell function: {func_name}"
-                                )
-                                
-                                # Show code preview 
-                                st.code(func_script, language="powershell")
+                            # Function info
+                            st.markdown(f"### {selected_function}")
+                            
+                            # Download button for the selected function
+                            st.download_button(
+                                label=f"Download {selected_function}",
+                                data=func_script,
+                                file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{selected_function}.ps1",
+                                mime="text/plain",
+                                help=f"PowerShell function: {selected_function}"
+                            )
+                            
+                            # Always show the code for the selected function
+                            st.markdown("#### Function Code:")
+                            st.code(func_script, language="powershell")
+                            
+                            # Show usage example
+                            st.markdown("#### Usage Example:")
+                            
+                            # Create an example based on the function type
+                            if selected_function.startswith("Test-"):
+                                example = f"{selected_function} -ComputerNames @('HyperV1', 'HyperV2', 'HyperV3')"
+                            elif selected_function.startswith("Set-"):
+                                example = f"{selected_function} -ComputerNames @('HyperV1', 'HyperV2', 'HyperV3')"
+                            elif selected_function.startswith("New-"):
+                                example = f"{selected_function} -ComputerNames @('HyperV1', 'HyperV2', 'HyperV3') -ClusterName 'HVCluster'"
+                            else:
+                                example = f"{selected_function}"
+                            
+                            st.code(example, language="powershell")
                     
-                    # Other Functions
-                    other_functions = [f for f in function_scripts.keys() 
-                                     if not (f.startswith("Test-") or f.startswith("Set-") or f.startswith("New-"))]
-                    if other_functions:
-                        st.markdown("### Other Functions")
-                        for func_name in other_functions:
-                            func_script = function_scripts[func_name]
+                    # Allow downloading all functions of a specific type
+                    st.markdown("### Download Multiple Functions")
+                    
+                    download_group = st.selectbox("Select function group to download:", 
+                                                 function_groups, key="download_group")
+                    
+                    if download_group:
+                        download_functions = grouped_functions[download_group]
+                        if download_functions:
+                            # Combine all functions in the group
+                            combined_content = ""
+                            for func_name in download_functions:
+                                combined_content += f"# {func_name}\n{function_scripts[func_name]}\n\n"
                             
-                            # Create expander for each function
-                            with st.expander(f"{func_name}", expanded=False):
-                                # Download button
-                                st.download_button(
-                                    label=f"Download {func_name}",
-                                    data=func_script,
-                                    file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
-                                    mime="text/plain",
-                                    help=f"PowerShell function: {func_name}"
-                                )
-                                
-                                # Show code preview
-                                st.code(func_script, language="powershell")
+                            # Create download button for the group
+                            st.download_button(
+                                label=f"Download All {download_group}",
+                                data=combined_content,
+                                file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{download_group.replace(' ', '_')}.ps1",
+                                mime="text/plain",
+                                help=f"All PowerShell {download_group.lower()}"
+                            )
                     else:
                         st.write("No individual functions could be extracted from the script. This might happen if the script doesn't contain properly formatted PowerShell functions.")
             
