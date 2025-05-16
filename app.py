@@ -72,7 +72,7 @@ def set_header():
             .logo-image {{
                 height: 50px;
                 display: block;
-                filter: brightness(2.0) contrast(1.2); /* Verstärkter Kontrast für bessere Sichtbarkeit */
+                filter: invert(1) brightness(1.0); /* Invertiertes Logo für maximale Sichtbarkeit im Dark Mode */
             }}
             .header-text {{
                 display: inline-block;
@@ -202,25 +202,16 @@ st.markdown(dark_mode_js, unsafe_allow_html=True)
 
 # Füge das Dark Mode Toggle zur Sidebar hinzu (klassisch, als Fallback)
 with st.sidebar:
-    # Dark Mode Toggle mit besserem Kontrast
+    # Dark Mode Toggle
     st.markdown("### Einstellungen", unsafe_allow_html=True)
     
-    # Dark Mode Toggle - Neu gestaltet für bessere Sichtbarkeit in beiden Modi
-    darkmode_col1, darkmode_col2 = st.columns([1, 4])
+    # Extrem einfache Version, die garantiert im Dark Mode sichtbar ist
+    use_dark_mode = st.checkbox("🌙 Dark Mode", value=st.session_state.dark_mode, key="dark_mode_checkbox")
     
-    with darkmode_col1:
-        if st.session_state.dark_mode:
-            st.markdown('<span style="color: #E0E0E0; font-size: 20px;">🌙</span>', unsafe_allow_html=True)
-        else:
-            st.markdown('<span style="color: #1C5631; font-size: 20px;">🌙</span>', unsafe_allow_html=True)
-        
-    with darkmode_col2:
-        # Spezieller Toggle mit angepasstem Styling basierend auf aktuellem Modus
-        dark_mode = st.toggle(
-            "Dark Mode", 
-            value=st.session_state.dark_mode, 
-            key="dark_mode_toggle"
-        )
+    # Wenn der Checkbox-Status sich ändert, speichern wir den Wert in der Session
+    if use_dark_mode != st.session_state.dark_mode:
+        st.session_state.dark_mode = use_dark_mode
+        st.rerun()
     
     # Direkter JavaScript-Fix für die weißen Ecken (wird nur im Dark Mode eingebunden)
     if st.session_state.dark_mode:
@@ -266,12 +257,7 @@ with st.sidebar:
         </script>
         """, unsafe_allow_html=True)
     
-    # Speichere die Einstellung für Persistenz
-    if dark_mode != st.session_state.dark_mode:
-        st.session_state.dark_mode = dark_mode
-        # Speichere die Einstellung in einem versteckten Feld
-        st.session_state['_dark_mode_persistent'] = dark_mode
-        st.rerun()
+    # Diese Logik wurde zur Checkbox-Funktion in der Sidebar verschoben
 
 # Anwenden des Dark Mode Stylings wenn aktiviert
 if st.session_state.dark_mode:
