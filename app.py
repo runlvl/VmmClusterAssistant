@@ -80,22 +80,20 @@ def set_header():
     """
     st.markdown(header_html, unsafe_allow_html=True)
 
-# Add dark mode toggle in sidebar
+# Initialize session state for progress tracking and UI preferences
+if 'current_step' not in st.session_state:
+    st.session_state.current_step = 0
+
+if 'completed_steps' not in st.session_state:
+    st.session_state.completed_steps = set()
+
+# Add settings in sidebar
 with st.sidebar:
     st.markdown("### Einstellungen")
-    theme_mode = st.radio(
-        "Darstellungsmodus:",
-        options=["Hell", "Dunkel"],
-        horizontal=True,
-        index=0 if st.session_state.theme_mode == 'light' else 1,
-        key="theme_selector"
-    )
-    
-    # Update theme mode in session state based on selection
-    st.session_state.theme_mode = 'light' if theme_mode == "Hell" else 'dark'
+    dark_mode = st.toggle("Dunkelmodus", value=False, key="dark_mode")
     
     # Apply custom styles based on theme
-    if st.session_state.theme_mode == 'dark':
+    if dark_mode:
         st.markdown("""
         <style>
         .stApp {
@@ -119,27 +117,9 @@ with st.sidebar:
         }
         </style>
         """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <style>
-        .stApp {
-            background-color: #FFFFFF;
-        }
-        </style>
-        """, unsafe_allow_html=True)
 
 # Call the header function
 set_header()
-
-# Initialize session state for progress tracking and UI preferences
-if 'current_step' not in st.session_state:
-    st.session_state.current_step = 0
-
-if 'completed_steps' not in st.session_state:
-    st.session_state.completed_steps = set()
-
-if 'theme_mode' not in st.session_state:
-    st.session_state.theme_mode = 'light'
 
 if 'configuration' not in st.session_state:
     st.session_state.configuration = {

@@ -7,85 +7,91 @@ def get_hardware_requirements():
         "server_requirements": [
             {
                 "Component": "CPU",
-                "Minimum": "2 cores",
-                "Recommended": "4+ cores",
-                "Notes": "2.0 GHz or faster"
+                "Minimum": "4 cores",
+                "Recommended": "8+ cores",
+                "Notes": "3.0 GHz oder höher für optimale Leistung"
             },
             {
                 "Component": "Memory (RAM)",
-                "Minimum": "8 GB",
-                "Recommended": "16+ GB",
-                "Notes": "Additional memory for VMs"
+                "Minimum": "16 GB",
+                "Recommended": "32+ GB",
+                "Notes": "64+ GB für produktive Umgebungen empfohlen"
             },
             {
                 "Component": "System Disk",
-                "Minimum": "100 GB",
-                "Recommended": "200+ GB",
-                "Notes": "SSD recommended"
+                "Minimum": "150 GB SSD",
+                "Recommended": "300+ GB NVMe",
+                "Notes": "RAID 1 für Betriebssystem empfohlen"
             },
             {
                 "Component": "Network",
                 "Minimum": "2 x 10 Gbps",
-                "Recommended": "2x2 10 Gbps (Classical Storage) / 2x2 25 Gbps (Storage Spaces Direct)",
-                "Notes": "Separate networks for management, VM traffic, and storage"
+                "Recommended": "2x2 10 Gbps (Klassischer Storage) / 2x2 25 Gbps (Storage Spaces Direct)",
+                "Notes": "Getrennte Netzwerke für Management, VM-Traffic, Live Migration und Storage"
             },
             {
                 "Component": "Operating System",
                 "Minimum": "Windows Server 2022",
                 "Recommended": "Windows Server 2025",
-                "Notes": "Standard or Datacenter edition"
+                "Notes": "Datacenter Edition für unbegrenzte VMs empfohlen"
             }
         ],
         "storage_requirements": [
             {
                 "Component": "Storage Type",
-                "Minimum": "Local Storage",
-                "Recommended": "SAN, iSCSI, FC",
-                "Notes": "Shared storage recommended"
+                "Minimum": "Shared Storage (SAN, iSCSI, FC)",
+                "Recommended": "Storage Spaces Direct (S2D)",
+                "Notes": "Hochverfügbare Speicherlösung erforderlich"
             },
             {
                 "Component": "Storage Capacity",
-                "Minimum": "500 GB",
-                "Recommended": "As needed for VMs",
-                "Notes": "Plan for VM storage and growth"
+                "Minimum": "1 TB verwendbar",
+                "Recommended": "5+ TB je nach VM-Anzahl",
+                "Notes": "Min. 30% Reserve für künftiges Wachstum einplanen"
+            },
+            {
+                "Component": "Storage Performance",
+                "Minimum": "All-Flash für Produktionsumgebungen",
+                "Recommended": "NVMe + Tiering",
+                "Notes": "Leistungsreserven für Lastspitzen berücksichtigen"
             },
             {
                 "Component": "Storage Connectivity",
-                "Minimum": "1 Gbps",
-                "Recommended": "10+ Gbps",
-                "Notes": "Redundant connections recommended"
-            },
-            {
-                "Component": "MPIO",
-                "Minimum": "Recommended",
-                "Recommended": "Required for HA",
-                "Notes": "For redundant storage connectivity"
+                "Minimum": "10 Gbps iSCSI oder 16 Gbps FC",
+                "Recommended": "25+ Gbps iSCSI oder 32 Gbps FC",
+                "Notes": "Redundante Pfade und MPIO zwingend erforderlich"
             }
         ],
         "network_requirements": [
             {
                 "Component": "Management Network",
                 "Minimum": "10 Gbps",
-                "Recommended": "10 Gbps",
-                "Notes": "For host management"
+                "Recommended": "10 Gbps redundant",
+                "Notes": "Für Host-Management und VM-Konfiguration"
             },
             {
                 "Component": "Live Migration Network",
-                "Minimum": "10 Gbps",
-                "Recommended": "25 Gbps",
-                "Notes": "Optional if multiple clusters or standalone hosts exist"
+                "Minimum": "10 Gbps dediziert",
+                "Recommended": "25+ Gbps dediziert",
+                "Notes": "Separates Netzwerk für VM-Migrationen erforderlich"
             },
             {
                 "Component": "VM Network",
-                "Minimum": "10 Gbps",
-                "Recommended": "25 Gbps",
-                "Notes": "For VM traffic"
+                "Minimum": "10 Gbps redundant",
+                "Recommended": "25+ Gbps redundant",
+                "Notes": "Für VM-Konnektivität mit externen Netzwerken"
             },
             {
                 "Component": "Cluster Network",
                 "Minimum": "10 Gbps",
-                "Recommended": "10 Gbps",
-                "Notes": "For cluster heartbeat"
+                "Recommended": "10 Gbps redundant",
+                "Notes": "Für Cluster-Heartbeat und CSV-Kommunikation"
+            },
+            {
+                "Component": "Storage Network",
+                "Minimum": "10 Gbps dediziert redundant",
+                "Recommended": "25 Gbps dediziert (50 Gbps für S2D)",
+                "Notes": "Dediziertes Netzwerk für Storage-Traffic erforderlich"
             }
         ]
     }
