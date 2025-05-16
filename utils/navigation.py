@@ -11,8 +11,12 @@ def go_to_step(step_index):
     Args:
         step_index: The index of the step to navigate to
     """
-    st.session_state.current_step = step_index
-    st.rerun()
+    # Make sure we're not trying to navigate to the same page
+    if st.session_state.current_step != step_index:
+        # Update session state
+        st.session_state.current_step = step_index
+        # Force streamlit to rerun the app
+        st.rerun()
 
 def go_to_introduction():
     """Navigate to the Introduction page"""
