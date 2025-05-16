@@ -69,7 +69,7 @@ def set_header():
         .logo-image {{
             height: 50px;
             display: block; /* Remove any inline spacing */
-            filter: {('brightness(1.2)' if is_dark_mode else 'none')};
+            filter: {('brightness(1.5) contrast(0.95)' if is_dark_mode else 'none')};
         }}
         .header-text {{
             display: inline-block;
@@ -78,12 +78,25 @@ def set_header():
             color: {text_color};
         }}
         .header-title {{
-            color: {accent_color};
             font-size: 22px;
             font-weight: 600;
             margin: 0;
             white-space: nowrap;
             padding-left: 5px;
+        }}
+        /* Spezifisches Styling für Dark Mode */
+        .dark-mode-header {{
+            color: #E0E0E0 !important;
+        }}
+        .dark-mode-accent {{
+            color: #2E7D4B !important;
+        }}
+        /* Helles Styling für Light Mode */
+        .light-mode-header {{
+            color: #000000 !important;
+        }}
+        .light-mode-accent {{
+            color: #1C5631 !important;
         }}
     </style>
     <div class="header-container">
@@ -91,7 +104,10 @@ def set_header():
             <img src="data:image/png;base64,{logo_base64}" class="logo-image">
         </div>
         <div class="header-text">
-            <div class="header-title"><span style="font-size: 30px; font-weight: 700; color: {text_color};">Professional Services</span> <span style="color: {text_color};">| Datacenter & Endpoint</span></div>
+            <div class="header-title">
+                <span style="font-size: 30px; font-weight: 700;" class="{('dark-mode-header' if is_dark_mode else 'light-mode-header')}">Professional Services</span> 
+                <span class="{('dark-mode-header' if is_dark_mode else 'light-mode-header')}">| Datacenter & Endpoint</span>
+            </div>
         </div>
     </div>
     """
@@ -152,15 +168,35 @@ st.markdown(dark_mode_js, unsafe_allow_html=True)
 
 # Füge das Dark Mode Toggle zur Sidebar hinzu (klassisch, als Fallback)
 with st.sidebar:
-    # Dark Mode Toggle mit besserem Kontrast und Visibility
+    # Dark Mode Toggle mit besserem Kontrast
     st.markdown("### Einstellungen", unsafe_allow_html=True)
     
-    # Verwende Checkbox statt Toggle für bessere Sichtbarkeit im Dark Mode
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        st.write("🌙")
-    with col2:
-        dark_mode = st.checkbox("Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
+    # Zurück zum Toggle mit zusätzlichem CSS für bessere Sichtbarkeit im Dark Mode
+    st.markdown("""
+    <style>
+    /* Verbesserte Sichtbarkeit des Toggle-Elements im Dark Mode */
+    .st-af, .st-ag, .st-ah, .st-ai, .st-aj {
+        background-color: #2E7D4B !important;
+    }
+    .st-af[aria-checked="true"] {
+        background-color: #2E7D4B !important;
+    }
+    .st-af[aria-checked="true"]::before {
+        background-color: white !important;
+    }
+    /* Bessere Sichtbarkeit des Toggle-Knopfs */
+    .st-af::before {
+        background-color: white !important;
+    }
+    /* Label-Text im Dark Mode */
+    .st-ae {
+        color: #E0E0E0 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Original-Toggle mit besserem Styling
+    dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
     
     # Direkter JavaScript-Fix für die weißen Ecken (wird nur im Dark Mode eingebunden)
     if st.session_state.dark_mode:
