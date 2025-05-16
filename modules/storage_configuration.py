@@ -35,8 +35,7 @@ def _save_storage_configuration(storage_type, csv_volumes, csv_count, quorum_dis
         st.session_state.completed_steps = set()
     
     st.session_state.completed_steps.add(4)  # Mark storage configuration step as completed
-    st.session_state.current_step = 5  # Move to next step (security settings)
-    st.rerun()
+    st.session_state.current_step = 6  # Move to documentation (now index 6)
 
 def _initialize_storage_config():
     """Initialize storage configuration in session state if not present."""
