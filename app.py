@@ -640,6 +640,26 @@ with st.sidebar:
             color: #E0E0E0 !important;
         }
         
+        /* Scroll-Controls und Container im Dark Mode - genau die weißen Ecken */
+        .st-emotion-cache-1l269u1, .st-emotion-cache-1r6slb0, 
+        [data-testid="ScrollToBottomContainer"], 
+        [data-testid="ScrollToTopContainer"],
+        div.st-emotion-cache-1l269u1, div.st-emotion-cache-1r6slb0,
+        .stMarkdown+div>[data-testid], .main-menu-container, 
+        button.st-emotion-cache-1r6slb0, button.st-emotion-cache-1l269u1 {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+            fill: #E0E0E0 !important;
+        }
+        
+        /* Alle Button-Elemente mit SVG-Icons oder Pfeilen im Dunkelmodus anpassen */
+        button svg, [role="button"] svg, svg path, svg rect, svg circle, 
+        button [data-testid="stMarkdownContainer"] svg {
+            fill: #E0E0E0 !important;
+            color: #E0E0E0 !important;
+            background-color: #2D2D2D !important;
+        }
+        
         /* Text-Überschriften in der Sidebar */
         [data-testid="stSidebar"] h3 {
             color: #E0E0E0 !important;
