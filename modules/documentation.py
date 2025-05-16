@@ -680,13 +680,19 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                                 if st.button(f"Preview {task_name}", key=f"preview_{task_key}"):
                                     st.session_state[f"show_preview_{task_key}"] = True
                             
+                            # Create a container for the preview
+                            preview_container = st.container()
+                            
                             # Show preview if button was clicked
                             if f"show_preview_{task_key}" in st.session_state and st.session_state[f"show_preview_{task_key}"]:
-                                st.markdown(f"**{task_name} Script Preview:**")
-                                st.code(task_scripts[task_key][:1000] + ("\n...(more lines)..." if len(task_scripts[task_key]) > 1000 else ""), language="powershell")
-                                if st.button("Hide Preview", key=f"hide_preview_{task_key}"):
-                                    st.session_state[f"show_preview_{task_key}"] = False
-                                    st.rerun()
+                                with preview_container:
+                                    st.markdown(f"**{task_name} Script Preview:**")
+                                    st.code(task_scripts[task_key][:1000] + ("\n...(more lines)..." if len(task_scripts[task_key]) > 1000 else ""), language="powershell")
+                                    hide_col1, hide_col2 = st.columns([1, 5])
+                                    with hide_col1:
+                                        if st.button("▲ Hide Preview", key=f"hide_preview_{task_key}"):
+                                            st.session_state[f"show_preview_{task_key}"] = False
+                                            st.rerun()
                 
                 # Tab 2: Scripts by Function
                 with script_tabs[1]:
@@ -829,13 +835,19 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                                         if st.button(f"Preview", key=f"preview_func_{func_name}"):
                                             st.session_state[f"show_preview_func_{func_name}"] = True
                                     
+                                    # Create a container for the preview
+                                    func_preview_container = st.container()
+                                    
                                     # Show preview if button was clicked
                                     if f"show_preview_func_{func_name}" in st.session_state and st.session_state[f"show_preview_func_{func_name}"]:
-                                        st.markdown(f"**{display_name} Preview:**")
-                                        st.code(func_script[:1000] + ("\n...(more lines)..." if len(func_script) > 1000 else ""), language="powershell")
-                                        if st.button("Hide Preview", key=f"hide_preview_func_{func_name}"):
-                                            st.session_state[f"show_preview_func_{func_name}"] = False
-                                            st.rerun()
+                                        with func_preview_container:
+                                            st.markdown(f"**{display_name} Preview:**")
+                                            st.code(func_script[:1000] + ("\n...(more lines)..." if len(func_script) > 1000 else ""), language="powershell")
+                                            hide_col1, hide_col2 = st.columns([1, 5])
+                                            with hide_col1:
+                                                if st.button("▲ Hide Preview", key=f"hide_preview_func_{func_name}"):
+                                                    st.session_state[f"show_preview_func_{func_name}"] = False
+                                                    st.rerun()
                     else:
                         st.write("No individual functions could be extracted from the script. This might happen if the script doesn't contain properly formatted PowerShell functions.")
             
