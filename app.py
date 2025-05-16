@@ -102,6 +102,15 @@ if 'configuration' not in st.session_state:
         "roles": {},
         "monitoring": {}
     }
+    
+# Initialize navigation buttons state
+for i in range(7):  # For all possible steps
+    if f"goto_{i}" not in st.session_state:
+        st.session_state[f"goto_{i}"] = False
+        
+# Helper function for navigation
+def set_navigation_target(target):
+    st.session_state.current_step = target
 
 # Initialize deployment type if not set
 if "deployment_type" not in st.session_state.configuration:
@@ -432,10 +441,16 @@ def render_introduction():
         for practice in best_practices[categories[4]]:
             st.markdown(f"- {practice}")
     
-    # Buttons for next steps
+    # Create simple navigation buttons with session state
     st.markdown("---")
-    if st.button("Next: Installation Guide", key="next_to_installation"):
-        go_to_installation()
+    
+    # Streamlit buttons with dedicated keys
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        next_button = st.button("→ Installation Guide", use_container_width=True)
+        if next_button:
+            st.session_state.current_step = 1
+            st.rerun()
 
 # Main content renderer
 if st.session_state.current_step == 0:
