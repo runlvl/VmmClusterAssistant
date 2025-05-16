@@ -246,10 +246,43 @@ with st.sidebar:
             color: var(--text-primary) !important;
         }
         
-        /* Sidebar */
+        /* Sidebar und Hauptmenü */
         section[data-testid="stSidebar"] {
             background-color: var(--background-secondary) !important;
             border-right: 1px solid var(--border-color) !important;
+        }
+        
+        /* Hauptmenü im Dunkelmodus */
+        .stSelectbox [data-testid="stMarkdownContainer"] ul {
+            background-color: var(--background-secondary) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        /* Header anpassen */
+        .header-container {
+            background-color: var(--background-main) !important;
+        }
+        .header-title, .header-text {
+            color: var(--text-primary) !important;
+        }
+        .header-title span {
+            color: var(--text-primary) !important;
+        }
+        
+        /* Hauptmenü-Elemente */
+        [data-testid="stVerticalBlock"] div[role="button"] {
+            background-color: var(--background-secondary) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        /* Implementation Steps Menu */
+        div.css-1544g2n.e1fqkh3o4 {
+            background-color: var(--background-secondary) !important;
+        }
+        
+        /* Ensure menu text is visible */
+        .st-be, .st-bf, .st-bg, .st-dc, .st-dd, .st-de {
+            color: var(--text-primary) !important;
         }
         
         /* Container mit Rahmen */
