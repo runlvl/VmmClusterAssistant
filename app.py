@@ -112,7 +112,6 @@ base_implementation_steps = [
     "Software Requirements",
     "Network Configuration",
     "Storage Configuration",
-    "Security Settings",
     "Generate Implementation Documentation (Final Step)"
 ]
 
@@ -453,9 +452,6 @@ elif st.session_state.current_step == 5:
     from modules.storage_configuration import render_storage_configuration
     render_storage_configuration()
 elif st.session_state.current_step == 6:
-    from modules.security_settings import render_security_settings
-    render_security_settings()
-elif st.session_state.current_step == 7:
     from modules.documentation import render_documentation
     render_documentation()
 

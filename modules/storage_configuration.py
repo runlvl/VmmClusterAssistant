@@ -550,7 +550,7 @@ def render_storage_configuration():
                  on_click=lambda: setattr(st.session_state, "current_step", 4))
     
     with col2:
-        next_button = st.button("Next: Security Settings", key="next_security")
+        next_button = st.button("Next: Generate Documentation", key="next_doc")
         if next_button:
             if not validation_results["status"]:
                 st.error("Please correct the storage configuration errors before proceeding.")
@@ -560,5 +560,5 @@ def render_storage_configuration():
                     shared_between_clusters, redundancy, storage_connectivity, 
                     filesystem, is_s2d, hyper_v_hosts
                 )
-                # Update step counter to move to security settings (index 6)
+                # Update step counter to move to documentation (index 6 now, after removing Security Settings)
                 st.session_state.current_step = 6
