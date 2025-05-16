@@ -72,7 +72,9 @@ def set_header():
             .logo-image {{
                 height: 50px;
                 display: block;
-                filter: brightness(2.0); /* Höhere Helligkeit ohne Farbverschiebung */
+                background-color: white;
+                padding: 5px;
+                border-radius: 5px;
             }}
             .header-text {{
                 display: inline-block;
@@ -202,56 +204,18 @@ st.markdown(dark_mode_js, unsafe_allow_html=True)
 
 # Füge das Dark Mode Toggle zur Sidebar hinzu (klassisch, als Fallback)
 with st.sidebar:
-    # Dark Mode Toggle mit Bechtle-grünem Toggle
     st.markdown("### Einstellungen", unsafe_allow_html=True)
     
-    # Grundlegendes CSS für das gesamte Dashboard
-    st.markdown("""
-    <style>
-    /* Universeller Stil für alle Toggles im Bechtle-Grün */
-    .st-cc, .st-cd, .st-ce, .st-cf, .st-cg {
-        background-color: #1C5631 !important;
-    }
+    # Verwenden von Checkbox statt Toggle, da dieser besser sichtbar ist in beiden Modi
+    st.markdown('<style>input[type="checkbox"] { accent-color: #1C5631; }</style>', unsafe_allow_html=True)
+    use_dark_mode = st.checkbox("🌙 Dark Mode", value=st.session_state.dark_mode)
     
-    /* Kugel im Toggle auf Weiß setzen */
-    .st-cc::before {
-        background-color: white !important;
-    }
-    
-    /* Aktivierter Toggle ist auch Bechtle-Grün */
-    .st-cc[aria-checked="true"] {
-        background-color: #1C5631 !important;
-    }
-    
-    /* Widget-Beschriftung im Dark Mode immer lesbar */
-    .st-cb {
-        color: white !important;
-    }
-    
-    /* Alle Toggle-Elemente mit hoher Spezifität erfassen */
-    div[data-testid="stToggle"] label,
-    div[data-testid="stToggleButton"] label,
-    div[data-baseweb="checkbox"] {
-        background-color: #1C5631 !important; 
-        border-color: #1C5631 !important;
-    }
-    
-    /* Verbesserte Lesbarkeit aller Toggle-Texte */
-    div[data-testid="stToggle"] span,
-    div[data-testid="stToggleButton"] span {
-        color: white !important;
-        font-weight: 500 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Wir verwenden wieder den Toggle mit angepasstem Styling
-    dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
-    
-    # Wenn sich der Status ändert, aktualisieren wir die Session
-    if dark_mode != st.session_state.dark_mode:
-        st.session_state.dark_mode = dark_mode
+    # Aktualisiere den Dark Mode Status, wenn sich die Checkbox ändert
+    if use_dark_mode != st.session_state.dark_mode:
+        st.session_state.dark_mode = use_dark_mode
         st.rerun()
+    
+    # Keine zusätzliche Logik notwendig
     
     # Direkter JavaScript-Fix für die weißen Ecken (wird nur im Dark Mode eingebunden)
     if st.session_state.dark_mode:
