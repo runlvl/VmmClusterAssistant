@@ -1054,9 +1054,20 @@ def generate_powershell_scripts(config):
         config: Dictionary containing the complete cluster configuration
         
     Returns:
-        Dictionary of scripts with their content
+        Dictionary of scripts with their content, organized by category and deployment type
     """
-    scripts = {}
+    scripts = {
+        "common": {},
+        "hyperv": {},
+        "scvmm": {},
+        "by_task": {
+            "prerequisites": {},
+            "network": {},
+            "storage": {},
+            "cluster": {},
+            "security": {}
+        }
+    }
     
     # 1. Prerequisite Checker Script
     prereq_script = """

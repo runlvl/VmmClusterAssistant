@@ -220,18 +220,125 @@ def _render_download_section(project_name):
         
         # PowerShell Scripts
         if "scripts" in st.session_state.documentation_generated and st.session_state.documentation_info.get("include_scripts", True):
-            # Create a combined script file
-            script_content = ""
-            for script_name, script_text in st.session_state.documentation_generated["scripts"].items():
-                script_content += f"# {script_name}\n{script_text}\n\n"
+            deployment_type = st.session_state.configuration.get("deployment_type", "hyperv")
+            scripts = st.session_state.documentation_generated["scripts"]
             
-            st.download_button(
-                label="Download PowerShell Implementation Scripts",
-                data=script_content,
-                file_name=f"{project_name.replace(' ', '_')}_VMM_Implementation_Scripts.ps1",
-                mime="text/plain",
-                help="Executable PowerShell scripts for automated VMM implementation"
-            )
+            # Create an expander for PowerShell scripts
+            with st.expander("PowerShell Implementation Scripts", expanded=True):
+                st.write("Download specific PowerShell scripts for your implementation:")
+                
+                # 1. Combined script file (all scripts)
+                all_scripts_content = ""
+                for category in scripts:
+                    if isinstance(scripts[category], dict):
+                        for script_name, script_text in scripts[category].items():
+                            if isinstance(script_text, str):  # Make sure it's a string
+                                all_scripts_content += f"# {script_name}\n{script_text}\n\n"
+                
+                st.download_button(
+                    label="Download All PowerShell Scripts (Combined)",
+                    data=all_scripts_content,
+                    file_name=f"{project_name.replace(' ', '_')}_All_Implementation_Scripts.ps1",
+                    mime="text/plain",
+                    help="All PowerShell implementation scripts combined in a single file"
+                )
+                
+                st.markdown("---")
+                
+                # 2. Scripts by Deployment Type
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    # Hyper-V only scripts
+                    hyperv_scripts_content = ""
+                    
+                    # Add common scripts first
+                    if "common" in scripts and isinstance(scripts["common"], dict):
+                        for script_name, script_text in scripts["common"].items():
+                            if isinstance(script_text, str):
+                                hyperv_scripts_content += f"# {script_name}\n{script_text}\n\n"
+                    
+                    # Add Hyper-V specific scripts
+                    if "hyperv" in scripts and isinstance(scripts["hyperv"], dict):
+                        for script_name, script_text in scripts["hyperv"].items():
+                            if isinstance(script_text, str):
+                                hyperv_scripts_content += f"# {script_name}\n{script_text}\n\n"
+                    
+                    st.download_button(
+                        label="Download Hyper-V Only Scripts",
+                        data=hyperv_scripts_content,
+                        file_name=f"{project_name.replace(' ', '_')}_HyperV_Scripts.ps1",
+                        mime="text/plain",
+                        help="PowerShell scripts for pure Hyper-V cluster implementation"
+                    )
+                
+                with col2:
+                    # SCVMM scripts
+                    scvmm_scripts_content = ""
+                    
+                    # Add common scripts first
+                    if "common" in scripts and isinstance(scripts["common"], dict):
+                        for script_name, script_text in scripts["common"].items():
+                            if isinstance(script_text, str):
+                                scvmm_scripts_content += f"# {script_name}\n{script_text}\n\n"
+                    
+                    # Add SCVMM specific scripts
+                    if "scvmm" in scripts and isinstance(scripts["scvmm"], dict):
+                        for script_name, script_text in scripts["scvmm"].items():
+                            if isinstance(script_text, str):
+                                scvmm_scripts_content += f"# {script_name}\n{script_text}\n\n"
+                    
+                    st.download_button(
+                        label="Download SCVMM Scripts",
+                        data=scvmm_scripts_content,
+                        file_name=f"{project_name.replace(' ', '_')}_SCVMM_Scripts.ps1",
+                        mime="text/plain",
+                        help="PowerShell scripts for Hyper-V cluster with SCVMM implementation"
+                    )
+                
+                st.markdown("---")
+                
+                # 3. Scripts by Task Category
+                st.subheader("Download Scripts by Task Category")
+                task_cols = st.columns(3)
+                
+                # Define task categories
+                task_categories = [
+                    ("prerequisites", "Prerequisites"),
+                    ("network", "Network Configuration"),
+                    ("storage", "Storage Configuration"),
+                    ("cluster", "Cluster Configuration"),
+                    ("security", "Security Configuration")
+                ]
+                
+                # Create download buttons for each task category
+                for i, (task_key, task_name) in enumerate(task_categories):
+                    col_index = i % 3
+                    
+                    with task_cols[col_index]:
+                        task_content = ""
+                        
+                        if "by_task" in scripts and task_key in scripts["by_task"] and isinstance(scripts["by_task"][task_key], dict):
+                            for script_name, script_text in scripts["by_task"][task_key].items():
+                                if isinstance(script_text, str):
+                                    task_content += f"# {script_name}\n{script_text}\n\n"
+                        
+                        if task_content:
+                            st.download_button(
+                                label=f"Download {task_name} Scripts",
+                                data=task_content,
+                                file_name=f"{project_name.replace(' ', '_')}_{task_key.capitalize()}_Scripts.ps1",
+                                mime="text/plain",
+                                help=f"PowerShell scripts for {task_name.lower()}"
+                            )
+                        else:
+                            # If no scripts found for this category, show disabled button
+                            st.write(f"{task_name} Scripts (None available)")
+            
+            # Current deployment type highlight
+            current_type = "Hyper-V Only" if deployment_type == "hyperv" else "SCVMM"
+            st.info(f"Current configuration is for: **{current_type}**")
+            st.caption("For the best results, download scripts specific to your deployment type.")
     
     with col2:
         # Configuration JSON
