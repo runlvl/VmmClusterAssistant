@@ -432,43 +432,141 @@ def _render_download_section(project_name):
                 
                 # Tab 2: Scripts by Function
                 with script_tabs[1]:
-                    if function_scripts:
-                        st.write("Download individual functions for easier editing:")
+                    st.write("Download individual functions for easier editing:")
+                    
+                    # Extract all functions from the complete script
+                    function_scripts = {}
+                    
+                    # First extract the script parameters/setup section
+                    setup_section = ""
+                    if complete_script_content:
+                        if "[CmdletBinding()]" in complete_script_content:
+                            # Find everything before the first function
+                            parts = complete_script_content.split("function ", 1)
+                            if len(parts) > 1:
+                                setup_section = parts[0].strip()
+                                function_scripts["00_Script_Parameters"] = setup_section
+                    
+                    # Extract all functions using regex pattern
+                    if complete_script_content:
+                        function_pattern = r'function\s+([A-Za-z0-9_-]+)\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}'
+                        function_matches = re.finditer(function_pattern, complete_script_content, re.DOTALL)
                         
-                        # Group functions by prefixes (like Test-, Set-, Get-)
+                        for match in function_matches:
+                            func_name = match.group(1)
+                            func_body = match.group(0)  # The entire function including definition
+                            function_scripts[func_name] = func_body
+                    
+                    # If we couldn't extract functions with regex, try a simpler approach
+                    if not function_scripts or len(function_scripts) <= 1:
+                        # Try simple split by "function" keyword
+                        parts = complete_script_content.split("function ")
+                        for i, part in enumerate(parts):
+                            if i == 0:  # Skip first part (before any function)
+                                continue
+                            
+                            # Extract the function name
+                            name_match = re.match(r'([A-Za-z0-9_-]+)', part)
+                            if name_match:
+                                func_name = name_match.group(1)
+                                # Find the function body by balancing braces
+                                brace_count = 0
+                                body_end = 0
+                                in_function = False
+                                
+                                for j, char in enumerate(part):
+                                    if char == '{':
+                                        brace_count += 1
+                                        in_function = True
+                                    elif char == '}':
+                                        brace_count -= 1
+                                        if in_function and brace_count == 0:
+                                            body_end = j + 1
+                                            break
+                                
+                                if body_end > 0:
+                                    function_body = "function " + part[:body_end]
+                                    function_scripts[func_name] = function_body
+                    
+                    # If we still couldn't extract functions, try one more approach with section-based splitting
+                    if not function_scripts or len(function_scripts) <= 1:
+                        # Extract main script sections
+                        section_pattern = r'# [^#]*(Configuration|Setup|Installation|Verification)[^#]*\n(.*?)(?=# [^#]*(?:Configuration|Setup|Installation|Verification)|\Z)'
+                        section_matches = re.finditer(section_pattern, complete_script_content, re.DOTALL)
+                        
+                        for i, match in enumerate(section_matches):
+                            section_name = match.group(1)
+                            section_content = match.group(0)
+                            function_scripts[f"Section_{i+1}_{section_name}"] = section_content
+                    
+                    # Display functions in an organized way
+                    if function_scripts:
+                        # Group functions by prefixes or types
                         function_groups = {}
+                        
+                        # Process each function
                         for func_name, func_script in function_scripts.items():
-                            if func_name.startswith("00_"):  # Special case for setup
+                            # Determine group
+                            if func_name.startswith("00_"):
                                 group = "0_Setup"
+                            elif func_name.startswith("Section_"):
+                                group = "1_Sections"
                             else:
-                                # Try to find a prefix pattern
+                                # Try to find a prefix pattern (e.g., Get-, Set-, Test-)
                                 prefix_match = re.match(r'^([A-Z][a-z]+)-', func_name)
                                 if prefix_match:
-                                    group = prefix_match.group(1)  # e.g., "Test", "Get", "Set"
+                                    group = f"2_{prefix_match.group(1)}"  # e.g., "2_Test"
                                 else:
-                                    group = "Other"
+                                    group = "3_Other"
                             
+                            # Add to the appropriate group
                             if group not in function_groups:
                                 function_groups[group] = {}
                             function_groups[group][func_name] = func_script
                         
-                        # Display functions by group with accordions
-                        for group, funcs in sorted(function_groups.items()):
-                            group_display = "Script Setup" if group == "0_Setup" else f"{group} Functions"
+                        # Display functions by group with expanders
+                        for group in sorted(function_groups.keys()):
+                            funcs = function_groups[group]
+                            
+                            # Determine display name
+                            if group == "0_Setup":
+                                group_display = "Script Setup"
+                            elif group == "1_Sections":
+                                group_display = "Script Sections"
+                            elif group.startswith("2_"):
+                                group_display = f"{group[2:]} Functions"
+                            else:
+                                group_display = "Other Functions"
+                            
+                            # Create expander for the group
                             with st.expander(group_display, expanded=group == "0_Setup"):
                                 for func_name, func_script in sorted(funcs.items()):
                                     col1, col2 = st.columns([3, 1])
-                                    display_name = "Script Parameters & Variables" if func_name.startswith("00_") else func_name
                                     
+                                    # Determine display name
+                                    if func_name.startswith("00_"):
+                                        display_name = "Script Parameters & Variables"
+                                    elif func_name.startswith("Section_"):
+                                        # Extract the section name from the format "Section_X_Name"
+                                        section_parts = func_name.split('_', 2)
+                                        if len(section_parts) > 2:
+                                            display_name = section_parts[2] + " Section"
+                                        else:
+                                            display_name = func_name
+                                    else:
+                                        display_name = func_name
+                                    
+                                    # Download button
                                     with col1:
                                         st.download_button(
                                             label=f"Download {display_name}",
                                             data=func_script,
                                             file_name=f"{project_name.replace(' ', '_')}_{deployment_name.replace(' ', '_')}_{func_name}.ps1",
                                             mime="text/plain",
-                                            help=f"PowerShell function: {func_name}"
+                                            help=f"PowerShell script: {display_name}"
                                         )
                                     
+                                    # Preview button
                                     with col2:
                                         if st.button(f"Preview", key=f"preview_func_{func_name}"):
                                             st.session_state[f"show_preview_func_{func_name}"] = True
@@ -481,7 +579,7 @@ def _render_download_section(project_name):
                                                 st.session_state[f"show_preview_func_{func_name}"] = False
                                                 st.rerun()
                     else:
-                        st.write("No individual functions could be extracted from the script.")
+                        st.write("No individual functions could be extracted from the script. This might happen if the script doesn't contain properly formatted PowerShell functions.")
             
             # Current deployment type highlight
             current_type = "Hyper-V Only" if deployment_type == "hyperv" else "SCVMM"
