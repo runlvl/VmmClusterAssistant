@@ -422,15 +422,8 @@ def render_introduction():
     
     # Buttons for next steps
     st.markdown("---")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("View Installation Guide", key="next_to_installation"):
-            st.session_state.current_step = 1
-            st.rerun()
-    with col2:
-        if st.button("Proceed to Hardware Requirements", key="next_to_hardware"):
-            st.session_state.current_step = 2
-            st.rerun()
+    st.button("Next: Installation Guide", key="next_to_installation", 
+             on_click=lambda: setattr(st.session_state, "current_step", 1))
 
 # Main content renderer
 if st.session_state.current_step == 0:
