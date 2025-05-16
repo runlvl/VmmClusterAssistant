@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from streamlit_option_menu import option_menu
 from pathlib import Path
 import base64
+import json
 
 # Import navigation utilities
 from utils.navigation import go_to_installation
@@ -79,15 +80,66 @@ def set_header():
     """
     st.markdown(header_html, unsafe_allow_html=True)
 
+# Add dark mode toggle in sidebar
+with st.sidebar:
+    st.markdown("### Einstellungen")
+    theme_mode = st.radio(
+        "Darstellungsmodus:",
+        options=["Hell", "Dunkel"],
+        horizontal=True,
+        index=0 if st.session_state.theme_mode == 'light' else 1,
+        key="theme_selector"
+    )
+    
+    # Update theme mode in session state based on selection
+    st.session_state.theme_mode = 'light' if theme_mode == "Hell" else 'dark'
+    
+    # Apply custom styles based on theme
+    if st.session_state.theme_mode == 'dark':
+        st.markdown("""
+        <style>
+        .stApp {
+            background-color: #0E1117;
+            color: #FAFAFA;
+        }
+        .stTabs [data-baseweb="tab-list"] {
+            background-color: #262730;
+        }
+        .stTabs [data-baseweb="tab"] {
+            color: #FAFAFA;
+        }
+        .stMarkdown, .stText, .stCode {
+            color: #FAFAFA;
+        }
+        .css-145kmo2 {
+            color: #FAFAFA !important;
+        }
+        .block-container {
+            background-color: #0E1117;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <style>
+        .stApp {
+            background-color: #FFFFFF;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
 # Call the header function
 set_header()
 
-# Initialize session state for progress tracking
+# Initialize session state for progress tracking and UI preferences
 if 'current_step' not in st.session_state:
     st.session_state.current_step = 0
 
 if 'completed_steps' not in st.session_state:
     st.session_state.completed_steps = set()
+
+if 'theme_mode' not in st.session_state:
+    st.session_state.theme_mode = 'light'
 
 if 'configuration' not in st.session_state:
     st.session_state.configuration = {
