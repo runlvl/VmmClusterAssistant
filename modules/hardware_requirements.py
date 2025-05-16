@@ -36,8 +36,7 @@ def render_hardware_requirements():
             st.session_state.completed_steps = set()
         
         st.session_state.completed_steps.add(1)  # Mark hardware step as completed
-        st.session_state.current_page = "Software Requirements"  # Use current_page instead of current_step
-        # Remove the st.rerun() call since we're in a callback
+        st.session_state.current_step = 3  # Move to software requirements (index 3 in the steps list)
 
     # Server requirements
     st.header("Server Requirements")
@@ -257,9 +256,9 @@ def render_hardware_requirements():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Use on_click instead of if st.button
+        # Navigate to introduction (index 0)
         st.button("Previous: Introduction", key="prev_intro", 
-                 on_click=lambda: setattr(st.session_state, "current_page", "Introduction"))
+                 on_click=lambda: setattr(st.session_state, "current_step", 0))
     
     with col2:
         st.button("Next: Software Requirements", on_click=confirm_hardware_configuration)
