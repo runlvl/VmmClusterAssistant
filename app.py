@@ -55,7 +55,7 @@ def set_header():
     # Set the logo and header text with improved formatting
     # Direktes HTML mit festen Farben basierend auf dem Modus
     if is_dark_mode:
-        # Dark Mode Header
+        # Dark Mode Header mit stärkerem Kontrast
         header_html = f"""
         <style>
             .header-container {{
@@ -72,13 +72,13 @@ def set_header():
             .logo-image {{
                 height: 50px;
                 display: block;
-                filter: brightness(1.5);
+                filter: brightness(2.0) contrast(1.2); /* Verstärkter Kontrast für bessere Sichtbarkeit */
             }}
             .header-text {{
                 display: inline-block;
                 line-height: 1;
                 padding-bottom: 4px;
-                color: #E0E0E0;
+                color: #FFFFFF; /* Reines Weiß für maximalen Kontrast im Dark Mode */
             }}
             .header-title {{
                 font-size: 22px;
@@ -94,8 +94,8 @@ def set_header():
             </div>
             <div class="header-text">
                 <div class="header-title">
-                    <span style="font-size: 30px; font-weight: 700; color: #E0E0E0;">Professional Services</span> 
-                    <span style="color: #E0E0E0;">| Datacenter & Endpoint</span>
+                    <span style="font-size: 30px; font-weight: 700; color: #FFFFFF;">Professional Services</span> 
+                    <span style="color: #FFFFFF;">| Datacenter & Endpoint</span>
                 </div>
             </div>
         </div>
@@ -205,14 +205,22 @@ with st.sidebar:
     # Dark Mode Toggle mit besserem Kontrast
     st.markdown("### Einstellungen", unsafe_allow_html=True)
     
-    # Einfaches, robustes Dark Mode Toggle
-    col1, col2 = st.columns([1, 4])
+    # Dark Mode Toggle - Neu gestaltet für bessere Sichtbarkeit in beiden Modi
+    darkmode_col1, darkmode_col2 = st.columns([1, 4])
     
-    with col1:
-        st.write("🌙")
+    with darkmode_col1:
+        if st.session_state.dark_mode:
+            st.markdown('<span style="color: #E0E0E0; font-size: 20px;">🌙</span>', unsafe_allow_html=True)
+        else:
+            st.markdown('<span style="color: #1C5631; font-size: 20px;">🌙</span>', unsafe_allow_html=True)
         
-    with col2:
-        dark_mode = st.toggle("Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
+    with darkmode_col2:
+        # Spezieller Toggle mit angepasstem Styling basierend auf aktuellem Modus
+        dark_mode = st.toggle(
+            "Dark Mode", 
+            value=st.session_state.dark_mode, 
+            key="dark_mode_toggle"
+        )
     
     # Direkter JavaScript-Fix für die weißen Ecken (wird nur im Dark Mode eingebunden)
     if st.session_state.dark_mode:
