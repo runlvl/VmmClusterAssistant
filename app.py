@@ -137,9 +137,11 @@ with st.sidebar:
     st.title("Hyper-V Cluster Implementation")
     st.caption("Bechtle Austria GmbH")
     
-    # Display progress
-    progress_percentage = len(st.session_state.completed_steps) / (len(implementation_steps) - 1) * 100 if len(implementation_steps) > 1 else 0
-    st.progress(progress_percentage / 100)
+    # Display progress based on current step rather than completed steps
+    # This ensures the progress bar matches navigation position
+    current_progress = st.session_state.current_step / (len(implementation_steps) - 1) if len(implementation_steps) > 1 else 0
+    st.progress(current_progress)
+    progress_percentage = current_progress * 100
     st.caption(f"Implementation Progress: {progress_percentage:.1f}%")
     
     # Navigation
