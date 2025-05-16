@@ -107,13 +107,13 @@ def get_software_requirements():
         "os_requirements": [
             {
                 "Component": "Windows Server 2025",
-                "Editions": "Standard or Datacenter",
-                "Notes": "Latest updates recommended"
+                "Editions": "Standard oder Datacenter",
+                "Notes": "Neueste Version mit allen Updates empfohlen"
             },
             {
                 "Component": "Windows Server 2022",
-                "Editions": "Standard or Datacenter",
-                "Notes": "Latest updates recommended"
+                "Editions": "Standard oder Datacenter",
+                "Notes": "Mindestvoraussetzung (supportet bis 2032)"
             }
         ],
         "required_features": [

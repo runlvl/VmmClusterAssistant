@@ -245,25 +245,34 @@ def render_introduction():
     # Create columns for the deployment type selection
     col1, col2 = st.columns(2)
     
+    # Check current deployment type
+    current_type = st.session_state.configuration.get("deployment_type", "hyperv")
+    hyperv_selected_style = "background-color: #1C5631; color: white; padding: 10px;" if current_type == "hyperv" else ""
+    scvmm_selected_style = "background-color: #1C5631; color: white; padding: 10px;" if current_type == "scvmm" else ""
+    
     with col1:
-        st.info("### Hyper-V Cluster Only")
-        st.markdown("""
-        - Simplified deployment
-        - Core clustering functionality
-        - Faster implementation
-        - No additional licensing costs
-        """)
-        hyperv_selected = st.button("Select Hyper-V Only", key="hyperv_select")
+        with st.container(border=True):
+            st.markdown(f"<div style='{hyperv_selected_style}'>### Hyper-V Cluster Only</div>", unsafe_allow_html=True)
+            st.markdown("""
+            - **Empfohlener Standard** für die meisten Einsatzszenarien
+            - Einfache Implementierung mit reduzierter Komplexität
+            - Grundlegende Cluster-Funktionalität
+            - Schnellere Bereitstellung
+            - Keine zusätzlichen Lizenzkosten für SCVMM
+            """)
+            hyperv_selected = st.button("Hyper-V Cluster auswählen", key="hyperv_select", use_container_width=True)
     
     with col2:
-        st.info("### With System Center VMM")
-        st.markdown("""
-        - Advanced management features
-        - Centralized administration
-        - Additional complexity
-        - Requires SQL Server
-        """)
-        scvmm_selected = st.button("Select with SCVMM", key="scvmm_select")
+        with st.container(border=True):
+            st.markdown(f"<div style='{scvmm_selected_style}'>### Mit System Center VMM</div>", unsafe_allow_html=True)
+            st.markdown("""
+            - Erweiterte Management-Funktionen
+            - Zentralisierte Verwaltung
+            - Zusätzliche Komplexität
+            - Benötigt SQL Server und weitere Komponenten
+            - Höhere Anforderungen an Ressourcen und Wartung
+            """)
+            scvmm_selected = st.button("Mit SCVMM auswählen", key="scvmm_select", use_container_width=True)
     
     # Handle deployment type selection and update menu
     if hyperv_selected:

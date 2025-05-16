@@ -160,7 +160,7 @@ def render_software_requirements():
             with col1:
                 vmm_version = st.selectbox(
                     "SCVMM Version",
-                    options=["System Center 2022", "System Center 2025"],
+                    options=["System Center 2025", "System Center 2022"],
                     index=0,
                     help="Select the System Center VMM version"
                 )
@@ -168,7 +168,7 @@ def render_software_requirements():
             with col2:
                 sql_version = st.selectbox(
                     "SQL Server Version",
-                    options=["SQL Server 2022", "SQL Server 2019"],
+                    options=["SQL Server 2022", "SQL Server 2022 Express"],
                     index=0,
                     help="Select the SQL Server version for the VMM database"
                 )
