@@ -72,9 +72,7 @@ def set_header():
             .logo-image {{
                 height: 50px;
                 display: block;
-                background-color: white;
-                padding: 5px;
-                border-radius: 5px;
+                filter: brightness(2.0) !important; /* Nur die Helligkeit erhöhen ohne Hintergrund */
             }}
             .header-text {{
                 display: inline-block;
@@ -206,16 +204,37 @@ st.markdown(dark_mode_js, unsafe_allow_html=True)
 with st.sidebar:
     st.markdown("### Einstellungen", unsafe_allow_html=True)
     
-    # Verwenden von Checkbox statt Toggle, da dieser besser sichtbar ist in beiden Modi
-    st.markdown('<style>input[type="checkbox"] { accent-color: #1C5631; }</style>', unsafe_allow_html=True)
-    use_dark_mode = st.checkbox("🌙 Dark Mode", value=st.session_state.dark_mode)
+    # Dark Mode Toggle mit umfassendem CSS für bessere Sichtbarkeit
+    st.markdown('''
+    <style>
+    /* Universelles Toggle-Styling für alle Streamlit-Toggle */
+    div[data-testid="stToggle"] .st-ca, 
+    div[data-testid="stToggle"] .st-cc, 
+    div[data-testid="stToggle"] .st-cd,
+    div[data-testid="stToggle"] .st-ce,
+    div[data-testid="stToggle"] .st-cf,
+    .st-ca, .st-cc, .st-cd, .st-ce, .st-cf {
+        background-color: #1C5631 !important;
+    }
     
-    # Aktualisiere den Dark Mode Status, wenn sich die Checkbox ändert
-    if use_dark_mode != st.session_state.dark_mode:
-        st.session_state.dark_mode = use_dark_mode
+    /* Toggle Knopf in Weiß */
+    .st-cc::before {
+        background-color: white !important;
+    }
+    
+    /* Toggle auf dem Schalterkasten in dunklem Modus */
+    .st-cb, .st-cg {
+        color: white !important;
+    }
+    </style>
+    ''', unsafe_allow_html=True)
+    
+    dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
+    
+    # Aktualisiere Session-State und rerun bei Änderung
+    if dark_mode != st.session_state.dark_mode:
+        st.session_state.dark_mode = dark_mode
         st.rerun()
-    
-    # Keine zusätzliche Logik notwendig
     
     # Direkter JavaScript-Fix für die weißen Ecken (wird nur im Dark Mode eingebunden)
     if st.session_state.dark_mode:
