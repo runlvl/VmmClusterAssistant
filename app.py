@@ -22,11 +22,17 @@ from data.best_practices import get_best_practices
 from data.requirements import get_hardware_requirements, get_software_requirements
 
 # App configuration
+# Standard Streamlit-Konfiguration ohne zusätzliche Elemente
 st.set_page_config(
     page_title="Hyper-V Cluster Implementation Tool",
     page_icon="🖥️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': "Hyper-V & VMM Cluster Implementation Tool\nv1.0.0"
+    }
 )
 
 # Function to display the logo
