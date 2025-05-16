@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from data.requirements import get_hardware_requirements
+from utils.navigation import go_to_installation, go_to_software
 
 def render_hardware_requirements():
     """Render the hardware requirements page."""
@@ -256,9 +257,12 @@ def render_hardware_requirements():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Navigate to installation (index 1)
-        st.button("Previous: Installation", key="prev_installation", 
-                 on_click=lambda: setattr(st.session_state, "current_step", 1))
+        # Navigate to installation using the dedicated function
+        if st.button("Previous: Installation", key="prev_installation"):
+            go_to_installation()
     
     with col2:
-        st.button("Next: Software Requirements", on_click=confirm_hardware_configuration)
+        # Call confirm_hardware_configuration and then navigate to software
+        if st.button("Next: Software Requirements", key="next_software"):
+            confirm_hardware_configuration()
+            go_to_software()

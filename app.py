@@ -8,6 +8,9 @@ from streamlit_option_menu import option_menu
 from pathlib import Path
 import base64
 
+# Import navigation utilities
+from utils.navigation import go_to_installation
+
 # Add the project root to the path
 sys.path.append(str(Path(__file__).parent))
 
@@ -424,8 +427,8 @@ def render_introduction():
     
     # Buttons for next steps
     st.markdown("---")
-    st.button("Next: Installation Guide", key="next_to_installation", 
-             on_click=lambda: setattr(st.session_state, "current_step", 1))
+    if st.button("Next: Installation Guide", key="next_to_installation"):
+        go_to_installation()
 
 # Main content renderer
 if st.session_state.current_step == 0:

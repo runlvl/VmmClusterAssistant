@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 from pathlib import Path
+from utils.navigation import go_to_introduction, go_to_hardware
 
 def render_installation_documentation():
     """Render the installation documentation page."""
@@ -118,11 +119,11 @@ def render_installation_documentation():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Navigate to introduction (index 0)
-        st.button("Previous: Introduction", key="prev_intro", 
-                 on_click=lambda: setattr(st.session_state, "current_step", 0))
+        # Navigate to introduction using the dedicated function
+        if st.button("Previous: Introduction", key="prev_intro"):
+            go_to_introduction()
     
     with col2:
-        # Navigate to hardware requirements (index 2)
-        st.button("Next: Hardware Requirements", key="next_hardware", 
-                 on_click=lambda: setattr(st.session_state, "current_step", 2))
+        # Navigate to hardware requirements using the dedicated function
+        if st.button("Next: Hardware Requirements", key="next_hardware"):
+            go_to_hardware()
