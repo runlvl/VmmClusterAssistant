@@ -63,7 +63,7 @@ def set_header():
                 align-items: flex-end;
                 padding-bottom: 1rem;
                 margin-top: 0.5rem;
-                background-color: #1E1E1E;
+                background-color: #282828; /* Hellerer Hintergrund für besseren Kontrast mit dem Logo */
             }}
             .logo-container {{
                 margin-right: 12px;
@@ -205,24 +205,39 @@ with st.sidebar:
     # Dark Mode Toggle mit Bechtle-grünem Toggle
     st.markdown("### Einstellungen", unsafe_allow_html=True)
     
-    # CSS für Bechtle-grünen Toggle-Button, funktioniert in beiden Modi
+    # Grundlegendes CSS für das gesamte Dashboard
     st.markdown("""
     <style>
-    /* Styling für den Toggle-Button im Bechtle-Grün */
-    div[data-testid="stToggleButton"] > label {
+    /* Universeller Stil für alle Toggles im Bechtle-Grün */
+    .st-cc, .st-cd, .st-ce, .st-cf, .st-cg {
         background-color: #1C5631 !important;
+    }
+    
+    /* Kugel im Toggle auf Weiß setzen */
+    .st-cc::before {
+        background-color: white !important;
+    }
+    
+    /* Aktivierter Toggle ist auch Bechtle-Grün */
+    .st-cc[aria-checked="true"] {
+        background-color: #1C5631 !important;
+    }
+    
+    /* Widget-Beschriftung im Dark Mode immer lesbar */
+    .st-cb {
         color: white !important;
     }
-    div[data-testid="stToggleButton"] > label:hover {
-        background-color: #2E7D4B !important;
+    
+    /* Alle Toggle-Elemente mit hoher Spezifität erfassen */
+    div[data-testid="stToggle"] label,
+    div[data-testid="stToggleButton"] label,
+    div[data-baseweb="checkbox"] {
+        background-color: #1C5631 !important; 
+        border-color: #1C5631 !important;
     }
-    div[data-testid="stToggleButton"] > label > div {
-        background-color: white !important;
-    }
-    div[data-testid="stToggleButton"] > label[data-baseweb="checkbox"] > div::after {
-        background-color: white !important;
-    }
-    /* Bessere Lesbarkeit des Toggle-Texts */
+    
+    /* Verbesserte Lesbarkeit aller Toggle-Texte */
+    div[data-testid="stToggle"] span,
     div[data-testid="stToggleButton"] span {
         color: white !important;
         font-weight: 500 !important;
