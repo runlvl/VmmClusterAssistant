@@ -104,14 +104,17 @@ if 'current_step' not in st.session_state:
 if 'completed_steps' not in st.session_state:
     st.session_state.completed_steps = set()
 
-# Persistenten Dunkelmodus über Session State implementieren
+# Dark Mode-Einstellungen initialisieren
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
-# Dark Mode wird ins Burger-Menü verschoben, daher hier keine Controls anzeigen
+# Dunkelmodus-Schalter in der Sidebar
 with st.sidebar:
-    # Leer lassen, da Einstellungen im Burger-Menü sind
-    pass
+    # Dunkelmodus-Schalter
+    dark_mode = st.toggle("🌙 Dunkelmodus", value=st.session_state.dark_mode, key="dark_mode_toggle")
+    if dark_mode != st.session_state.dark_mode:
+        st.session_state.dark_mode = dark_mode
+        st.rerun()
 
 # Anwenden des Dark Mode Stylings wenn aktiviert
 if st.session_state.dark_mode:
@@ -222,7 +225,7 @@ if st.session_state.dark_mode:
         """, unsafe_allow_html=True)
     
     # Apply custom styles based on theme
-    if dark_mode:
+    if st.session_state.dark_mode:
         st.markdown("""
         <style>
         /* Dunkelgraue Farbpalette für den Dark Mode */
