@@ -669,7 +669,47 @@ with st.sidebar:
         </style>
         """, unsafe_allow_html=True)
     
-    # Navigation - mit zusätzlichen CSS-Klassen für bessere Dark Mode-Unterstützung
+    # Navigation mit direkten Style-Anpassungen für Dark Mode
+    # Wir verwenden hier ein komplett anderes Styling für das Menü im Dark Mode
+    menu_styles = {
+        "container": {
+            "padding": "0px", 
+            "background-color": "#2D2D2D" if st.session_state.dark_mode else "#FFFFFF",
+            "border-radius": "5px"
+        },
+        "icon": {
+            "font-size": "16px", 
+            "margin": "0px 5px 0px 0px", 
+            "color": "#E0E0E0" if st.session_state.dark_mode else "#000000",
+            "padding": "0px"
+        },
+        "nav-link": {
+            "font-size": "14px", 
+            "margin":"0px", 
+            "padding": "8px 12px",
+            "text-align": "left", 
+            "background-color": "#2D2D2D" if st.session_state.dark_mode else "#FFFFFF",
+            "color": "#E0E0E0" if st.session_state.dark_mode else "#000000",
+            "border-radius": "2px",
+            "white-space": "normal",
+            "height": "auto",
+        },
+        "nav-link-selected": {
+            "background-color": "#2E7D4B",
+            "color": "#FFFFFF",
+            "font-weight": "bold"
+        },
+        "menu-title": {
+            "margin": "0px",
+            "padding": "6px 12px",
+            "background-color": "#2D2D2D" if st.session_state.dark_mode else "#FFFFFF",
+            "color": "#E0E0E0" if st.session_state.dark_mode else "#000000",
+            "font-weight": "bold",
+            "font-size": "16px"
+        }
+    }
+    
+    # Jetzt das Menü mit umfassenden eigenen Styles erstellen
     selected_step = option_menu(
         "Implementation Steps",
         implementation_steps,
@@ -679,18 +719,7 @@ with st.sidebar:
         ],
         menu_icon="list",
         default_index=st.session_state.current_step,
-        styles={
-            "container": {"background-color": "#2D2D2D" if st.session_state.dark_mode else "#fff"},
-            "icon": {"color": "#E0E0E0" if st.session_state.dark_mode else "#000000"},
-            "nav-link": {
-                "color": "#E0E0E0" if st.session_state.dark_mode else "#000000",
-                "background-color": "#2D2D2D" if st.session_state.dark_mode else "#fff"
-            },
-            "nav-link-selected": {
-                "background-color": "#2E7D4B" if st.session_state.dark_mode else "#1C5631",
-                "color": "#ffffff"
-            }
-        }
+        styles=menu_styles
     )
     
     if selected_step != implementation_steps[st.session_state.current_step]:
