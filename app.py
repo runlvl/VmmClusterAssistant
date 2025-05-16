@@ -38,6 +38,14 @@ def set_header():
     logo_path = "assets/bechtle_logo.png"
     logo_base64 = get_base64_of_image(logo_path)
     
+    # Check if dark mode is enabled
+    is_dark_mode = 'dark_mode' in st.session_state and st.session_state.dark_mode
+    
+    # Set text color based on mode
+    text_color = "#E0E0E0" if is_dark_mode else "#000000"
+    bg_color = "#1E1E1E" if is_dark_mode else "#ffffff"
+    accent_color = "#2E7D4B" if is_dark_mode else "#1C5631"
+    
     # Set the logo and header text with improved formatting
     header_html = f"""
     <style>
@@ -46,6 +54,7 @@ def set_header():
             align-items: flex-end; /* Align items to the bottom */
             padding-bottom: 1rem;
             margin-top: 0.5rem;
+            background-color: {bg_color};
         }}
         .logo-container {{
             margin-right: 12px;
@@ -54,14 +63,16 @@ def set_header():
         .logo-image {{
             height: 50px;
             display: block; /* Remove any inline spacing */
+            filter: {('brightness(1.2)' if is_dark_mode else 'none')};
         }}
         .header-text {{
             display: inline-block;
             line-height: 1;
             padding-bottom: 4px; /* Increased to move text up relative to logo */
+            color: {text_color};
         }}
         .header-title {{
-            color: #1C5631;
+            color: {accent_color};
             font-size: 22px;
             font-weight: 600;
             margin: 0;
@@ -74,7 +85,7 @@ def set_header():
             <img src="data:image/png;base64,{logo_base64}" class="logo-image">
         </div>
         <div class="header-text">
-            <div class="header-title"><span style="font-size: 30px; font-weight: 700;">Professional Services</span> | Datacenter & Endpoint</div>
+            <div class="header-title"><span style="font-size: 30px; font-weight: 700; color: {text_color};">Professional Services</span> <span style="color: {text_color};">| Datacenter & Endpoint</span></div>
         </div>
     </div>
     """
@@ -415,6 +426,28 @@ with st.sidebar:
     st.progress(current_progress)
     progress_percentage = current_progress * 100
     st.caption(f"Implementation Progress: {progress_percentage:.1f}%")
+    
+    # Injiziere Dark Mode CSS für das Hauptmenü
+    if 'dark_mode' in st.session_state and st.session_state.dark_mode:
+        st.markdown("""
+        <style>
+        /* Dark mode for option menu */
+        .nav-link {
+            background-color: #2D2D2D !important;
+            color: #E0E0E0 !important;
+        }
+        .nav-link.active {
+            background-color: #2E7D4B !important;
+            color: #FFFFFF !important;
+        }
+        .nav-link:hover {
+            background-color: #3E3E3E !important;
+        }
+        div[data-testid="stVerticalBlock"] nav {
+            background-color: #2D2D2D !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
     
     # Navigation
     selected_step = option_menu(
