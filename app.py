@@ -156,6 +156,50 @@ with st.sidebar:
     st.markdown("### Einstellungen", unsafe_allow_html=True)
     dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode, key="dark_mode_toggle")
     
+    # Direkter JavaScript-Fix für die weißen Ecken (wird nur im Dark Mode eingebunden)
+    if st.session_state.dark_mode:
+        st.markdown("""
+        <style>
+        /* Alle iframes und Komponenten im Streamlit-Menü korrigieren */
+        iframe, div, button, nav, aside, section {
+            background-color: #2D2D2D !important;
+        }
+        
+        /* Gezielt die runden Ecken in der Menüleiste ansprechen */
+        .element-container iframe {
+            border-radius: 0 !important;
+            background-color: #2D2D2D !important;
+        }
+        </style>
+        
+        <script>
+        // JavaScript-Fix für die weißen Ecken des Menüs
+        document.addEventListener('DOMContentLoaded', function() {
+            // Alle iframes finden (oft verwendet für eingebettete Komponenten wie das Menü)
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(function(iframe) {
+                // Direkten Style zum iframe hinzufügen
+                iframe.style.backgroundColor = '#2D2D2D';
+                
+                // Versuchen, auf den Inhalt des iframes zuzugreifen (wenn möglich)
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    // Hintergrundfarbe für alles im iframe setzen
+                    const style = iframeDoc.createElement('style');
+                    style.textContent = `
+                        body, div, button, nav, aside, section {
+                            background-color: #2D2D2D !important;
+                        }
+                    `;
+                    iframeDoc.head.appendChild(style);
+                } catch(e) {
+                    console.log('Konnte nicht auf iframe zugreifen:', e);
+                }
+            });
+        });
+        </script>
+        """, unsafe_allow_html=True)
+    
     # Speichere die Einstellung für Persistenz
     if dark_mode != st.session_state.dark_mode:
         st.session_state.dark_mode = dark_mode
@@ -720,7 +764,7 @@ with st.sidebar:
         "container": {
             "padding": "0px", 
             "background-color": "#2D2D2D" if st.session_state.dark_mode else "#FFFFFF",
-            "border-radius": "5px"
+            "border-radius": "0px"  # Bewusst eckig statt abgerundet
         },
         "icon": {
             "font-size": "16px", 
