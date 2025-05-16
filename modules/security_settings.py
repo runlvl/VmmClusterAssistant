@@ -461,9 +461,9 @@ def render_security_settings():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        if st.button("Previous: Storage Configuration", key="prev_storage"):
-            st.session_state.current_step = 4
-            st.rerun()
+        # Navigate to storage configuration (index 5)
+        st.button("Previous: Storage Configuration", key="prev_storage", 
+                 on_click=lambda: setattr(st.session_state, "current_step", 5))
     
     with col2:
         next_button = st.button("Next: Generate Documentation", key="next_doc")
@@ -476,3 +476,5 @@ def render_security_settings():
                     smb_encryption, dkm_enabled, code_integrity, update_policy,
                     password_policy, roles, dkm_container
                 )
+                # Update step counter to move to documentation (index 7)
+                st.session_state.current_step = 7

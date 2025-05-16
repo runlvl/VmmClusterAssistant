@@ -545,9 +545,9 @@ def render_storage_configuration():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        if st.button("Previous: Network Configuration", key="prev_network"):
-            st.session_state.current_step = 3
-            st.rerun()
+        # Navigate to network configuration (index 4)
+        st.button("Previous: Network Configuration", key="prev_network", 
+                 on_click=lambda: setattr(st.session_state, "current_step", 4))
     
     with col2:
         next_button = st.button("Next: Security Settings", key="next_security")
@@ -560,3 +560,5 @@ def render_storage_configuration():
                     shared_between_clusters, redundancy, storage_connectivity, 
                     filesystem, is_s2d, hyper_v_hosts
                 )
+                # Update step counter to move to security settings (index 6)
+                st.session_state.current_step = 6
