@@ -682,11 +682,11 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                             
                             # Show preview if button was clicked
                             if f"show_preview_{task_key}" in st.session_state and st.session_state[f"show_preview_{task_key}"]:
-                                with st.expander(f"{task_name} Script Preview", expanded=True):
-                                    st.code(task_scripts[task_key][:1000] + ("\n...(more lines)..." if len(task_scripts[task_key]) > 1000 else ""), language="powershell")
-                                    if st.button("Hide Preview", key=f"hide_preview_{task_key}"):
-                                        st.session_state[f"show_preview_{task_key}"] = False
-                                        st.rerun()
+                                st.markdown(f"**{task_name} Script Preview:**")
+                                st.code(task_scripts[task_key][:1000] + ("\n...(more lines)..." if len(task_scripts[task_key]) > 1000 else ""), language="powershell")
+                                if st.button("Hide Preview", key=f"hide_preview_{task_key}"):
+                                    st.session_state[f"show_preview_{task_key}"] = False
+                                    st.rerun()
                 
                 # Tab 2: Scripts by Function
                 with script_tabs[1]:
@@ -831,11 +831,11 @@ Set-ClusterSecurityConfiguration -ComputerNames $servers -EnableSMBEncryption $t
                                     
                                     # Show preview if button was clicked
                                     if f"show_preview_func_{func_name}" in st.session_state and st.session_state[f"show_preview_func_{func_name}"]:
-                                        with st.expander(f"{display_name} Preview", expanded=True):
-                                            st.code(func_script[:1000] + ("\n...(more lines)..." if len(func_script) > 1000 else ""), language="powershell")
-                                            if st.button("Hide Preview", key=f"hide_preview_func_{func_name}"):
-                                                st.session_state[f"show_preview_func_{func_name}"] = False
-                                                st.rerun()
+                                        st.markdown(f"**{display_name} Preview:**")
+                                        st.code(func_script[:1000] + ("\n...(more lines)..." if len(func_script) > 1000 else ""), language="powershell")
+                                        if st.button("Hide Preview", key=f"hide_preview_func_{func_name}"):
+                                            st.session_state[f"show_preview_func_{func_name}"] = False
+                                            st.rerun()
                     else:
                         st.write("No individual functions could be extracted from the script. This might happen if the script doesn't contain properly formatted PowerShell functions.")
             
