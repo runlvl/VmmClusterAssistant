@@ -297,7 +297,34 @@ def _render_download_section(project_name):
                             if task_key and task_key in task_scripts:
                                 task_scripts[task_key] += f"# {script_name}\n{script_text}\n\n"
                 
-                # 2. Get organized scripts from by_task structure
+                # 2. Manually extract script sections and organize them by task
+                # This is a fallback if the by_task structure is incomplete
+                if complete_script_content:
+                    # Network configuration section
+                    network_pattern = r'# [^#]*Network Configuration[^#]*\n(.*?)(?=# [^#]*(?:Configuration|Setup)|\Z)'
+                    network_matches = re.findall(network_pattern, complete_script_content, re.DOTALL)
+                    if network_matches and task_scripts.get("network") == "":
+                        task_scripts["network"] = f"# Network Configuration\n{network_matches[0]}\n"
+                    
+                    # Storage configuration section
+                    storage_pattern = r'# [^#]*Storage Configuration[^#]*\n(.*?)(?=# [^#]*(?:Configuration|Setup)|\Z)'
+                    storage_matches = re.findall(storage_pattern, complete_script_content, re.DOTALL)
+                    if storage_matches and task_scripts.get("storage") == "":
+                        task_scripts["storage"] = f"# Storage Configuration\n{storage_matches[0]}\n"
+                    
+                    # Cluster configuration section
+                    cluster_pattern = r'# [^#]*Cluster Configuration[^#]*\n(.*?)(?=# [^#]*(?:Configuration|Setup)|\Z)'
+                    cluster_matches = re.findall(cluster_pattern, complete_script_content, re.DOTALL)
+                    if cluster_matches and task_scripts.get("cluster") == "":
+                        task_scripts["cluster"] = f"# Cluster Configuration\n{cluster_matches[0]}\n"
+                    
+                    # Security configuration section
+                    security_pattern = r'# [^#]*Security Configuration[^#]*\n(.*?)(?=# [^#]*(?:Configuration|Setup)|\Z)'
+                    security_matches = re.findall(security_pattern, complete_script_content, re.DOTALL)
+                    if security_matches and task_scripts.get("security") == "":
+                        task_scripts["security"] = f"# Security Configuration\n{security_matches[0]}\n"
+                
+                # 2.5 Combine with by_task structure if it exists
                 if "by_task" in scripts and isinstance(scripts["by_task"], dict):
                     for task_key, task_dict in scripts["by_task"].items():
                         if task_key in task_scripts and isinstance(task_dict, dict):

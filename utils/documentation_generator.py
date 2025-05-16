@@ -1056,6 +1056,7 @@ def generate_powershell_scripts(config):
     Returns:
         Dictionary of scripts with their content, organized by category and deployment type
     """
+    # Initialize script structure
     scripts = {
         "common": {},
         "hyperv": {},
@@ -1066,7 +1067,8 @@ def generate_powershell_scripts(config):
             "storage": {},
             "cluster": {},
             "security": {}
-        }
+        },
+        "individual_functions": {}  # For storing individual functions/tasks
     }
     
     # 1. Prerequisite Checker Script
