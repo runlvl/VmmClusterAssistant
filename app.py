@@ -259,7 +259,7 @@ def render_introduction():
     3. The tool will validate your inputs and provide feedback
     4. After completing all steps, you'll receive documentation and implementation scripts
     
-    Let's begin by clicking on the "Hardware Requirements" step in the sidebar.
+    Let's begin by going through each step in order, starting with the "Installation" step.
     """)
     
     # Display overview of cluster architecture based on deployment type
