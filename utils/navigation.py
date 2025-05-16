@@ -3,20 +3,30 @@ Navigation utility functions to ensure consistent navigation between pages.
 """
 import streamlit as st
 
+def create_navigation_callback(step_index):
+    """
+    Create a callback function for navigation buttons.
+    This approach is more reliable than using lambdas.
+    
+    Args:
+        step_index: The index of the step to navigate to
+        
+    Returns:
+        A callback function that updates the current_step in session state
+    """
+    def navigate():
+        st.session_state.current_step = step_index
+    return navigate
+
 def go_to_step(step_index):
     """
-    Update the current step in the session state and trigger a rerun.
-    This provides a consistent way to navigate between steps.
+    Update the current step in the session state without a rerun.
+    This provides a more direct way to navigate between steps.
     
     Args:
         step_index: The index of the step to navigate to
     """
-    # Make sure we're not trying to navigate to the same page
-    if st.session_state.current_step != step_index:
-        # Update session state
-        st.session_state.current_step = step_index
-        # Force streamlit to rerun the app
-        st.rerun()
+    st.session_state.current_step = step_index
 
 def go_to_introduction():
     """Navigate to the Introduction page"""

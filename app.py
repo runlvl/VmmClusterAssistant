@@ -140,6 +140,13 @@ with st.sidebar:
     st.title("Hyper-V Cluster Implementation")
     st.caption("Bechtle Austria GmbH")
     
+    # Add navigation helper functions to session state for direct access
+    if "navigate_to" not in st.session_state:
+        def navigate_to(step_index):
+            st.session_state.current_step = step_index
+            st.rerun()
+        st.session_state.navigate_to = navigate_to
+    
     # Display progress based on current step rather than completed steps
     # This ensures the progress bar matches navigation position
     current_progress = st.session_state.current_step / (len(implementation_steps) - 1) if len(implementation_steps) > 1 else 0
