@@ -1052,6 +1052,16 @@ def _render_documentation_preview():
     
     st.header("Implementation Documentation Preview")
     
+    # Füge das Roboterbild mit Erfolgsanzeige ein
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.image("assets/images/implementation_robot.jpg", width=250, caption="Ihr Implementationsassistent")
+        
+    with col2:
+        st.success("Ihre Implementationsdokumentation wurde erfolgreich erstellt! Der Assistent hat alle notwendigen Konfigurationen und Anweisungen basierend auf Ihren Eingaben generiert.")
+        st.info("Nutzen Sie die herunterladbaren Dokumente und Skripte für Ihre Hyper-V oder VMM-Implementierung. Diese detaillierte Dokumentation kann als Projektleitfaden für Ihr Team dienen.")
+    
     with st.expander("Show Documentation Preview", expanded=False):
         try:
             from streamlit.components.v1 import html
