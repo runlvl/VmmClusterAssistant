@@ -588,9 +588,9 @@ def render_network_configuration():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        if st.button("Previous: Software Requirements", key="prev_software"):
-            st.session_state.current_step = 2
-            st.rerun()
+        # Navigate to software requirements (index 3)
+        st.button("Previous: Software Requirements", key="prev_software", 
+                 on_click=lambda: setattr(st.session_state, "current_step", 3))
     
     with col2:
         next_button = st.button("Next: Storage Configuration", key="next_storage")
@@ -603,3 +603,5 @@ def render_network_configuration():
                     dedicated_nics, ipsec_enabled, separate_networks, hyper_v_hosts,
                     network_adapters, logical_networks, vm_networks
                 )
+                # Update step counter to move to storage configuration (index 5)
+                st.session_state.current_step = 5

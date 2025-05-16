@@ -52,8 +52,7 @@ def render_software_requirements():
             st.session_state.completed_steps = set()
         
         st.session_state.completed_steps.add(2)  # Mark software step as completed
-        st.session_state.current_step = 3  # Move to next step (network configuration)
-        st.rerun()
+        st.session_state.current_step = 4  # Move to network configuration (index 4 in the steps list)
 
     # OS version selection (used by both tabs)
     os_version_map = {
@@ -327,9 +326,9 @@ def render_software_requirements():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        if st.button("Previous: Hardware Requirements", key="prev_hardware"):
-            st.session_state.current_step = 1
-            st.rerun()
+        # Navigate to hardware requirements (index 2)
+        st.button("Previous: Hardware Requirements", key="prev_hardware", 
+                 on_click=lambda: setattr(st.session_state, "current_step", 2))
     
     with col2:
         st.button("Next: Network Configuration", on_click=confirm_software_configuration)
