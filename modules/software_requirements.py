@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from data.requirements import get_software_requirements
+from utils.navigation import go_to_hardware, go_to_network
 
 def render_software_requirements():
     """Render the software requirements page with separate tabs for Hyper-V hosts and SCVMM."""
@@ -326,9 +327,12 @@ def render_software_requirements():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Navigate to hardware requirements (index 2)
-        st.button("Previous: Hardware Requirements", key="prev_hardware", 
-                 on_click=lambda: setattr(st.session_state, "current_step", 2))
+        # Navigate to hardware requirements using dedicated function
+        if st.button("Previous: Hardware Requirements", key="prev_hardware"):
+            go_to_hardware()
     
     with col2:
-        st.button("Next: Network Configuration", on_click=confirm_software_configuration)
+        # Confirm configuration and navigate to network config
+        if st.button("Next: Network Configuration", key="next_network"):
+            confirm_software_configuration()
+            go_to_network()
