@@ -257,12 +257,16 @@ def render_hardware_requirements():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Navigate to installation using the dedicated function
-        if st.button("Previous: Installation", key="prev_installation"):
-            go_to_installation()
+        # Direct navigation to Installation
+        prev_button = st.button("← Installation", use_container_width=True)
+        if prev_button:
+            st.session_state.current_step = 1
+            st.rerun()
     
     with col2:
-        # Call confirm_hardware_configuration and then navigate to software
-        if st.button("Next: Software Requirements", key="next_software"):
+        # Call confirm function and direct navigation to Software Requirements
+        next_button = st.button("Software Requirements →", use_container_width=True)
+        if next_button:
             confirm_hardware_configuration()
-            go_to_software()
+            st.session_state.current_step = 3
+            st.rerun()

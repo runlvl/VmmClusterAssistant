@@ -588,12 +588,14 @@ def render_network_configuration():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Navigate to software requirements using dedicated function
-        if st.button("Previous: Software Requirements", key="prev_software"):
-            go_to_software()
+        # Direct navigation to Software Requirements
+        prev_button = st.button("← Software Requirements", use_container_width=True)
+        if prev_button:
+            st.session_state.current_step = 3
+            st.rerun()
     
     with col2:
-        next_button = st.button("Next: Storage Configuration", key="next_storage")
+        next_button = st.button("Storage Configuration →", use_container_width=True)
         if next_button:
             if not validation_results["status"]:
                 st.error("Please correct the network configuration errors before proceeding.")
@@ -603,5 +605,6 @@ def render_network_configuration():
                     dedicated_nics, ipsec_enabled, separate_networks, hyper_v_hosts,
                     network_adapters, logical_networks, vm_networks
                 )
-                # Navigate to storage configuration using dedicated function
-                go_to_storage()
+                # Direct navigation to Storage Configuration
+                st.session_state.current_step = 5
+                st.rerun()

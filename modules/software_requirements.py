@@ -327,12 +327,16 @@ def render_software_requirements():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Navigate to hardware requirements using dedicated function
-        if st.button("Previous: Hardware Requirements", key="prev_hardware"):
-            go_to_hardware()
+        # Direct navigation to Hardware Requirements
+        prev_button = st.button("← Hardware Requirements", use_container_width=True)
+        if prev_button:
+            st.session_state.current_step = 2
+            st.rerun()
     
     with col2:
-        # Confirm configuration and navigate to network config
-        if st.button("Next: Network Configuration", key="next_network"):
+        # Call confirm function and direct navigation to Network Configuration
+        next_button = st.button("Network Configuration →", use_container_width=True)
+        if next_button:
             confirm_software_configuration()
-            go_to_network()
+            st.session_state.current_step = 4
+            st.rerun()

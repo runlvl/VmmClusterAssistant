@@ -119,11 +119,15 @@ def render_installation_documentation():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Use the navigation function directly from session state
-        if st.button("Previous: Introduction", key="prev_intro"):
-            st.session_state.navigate_to(0)
+        # Direct navigation to Introduction
+        prev_button = st.button("← Introduction", use_container_width=True)
+        if prev_button:
+            st.session_state.current_step = 0
+            st.rerun()
     
     with col2:
-        # Use the navigation function directly from session state
-        if st.button("Next: Hardware Requirements", key="next_hardware"):
-            st.session_state.navigate_to(2)
+        # Direct navigation to Hardware Requirements
+        next_button = st.button("Hardware Requirements →", use_container_width=True)
+        if next_button:
+            st.session_state.current_step = 2
+            st.rerun()
