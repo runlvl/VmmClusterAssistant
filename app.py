@@ -23,7 +23,7 @@ from data.requirements import get_hardware_requirements, get_software_requiremen
 
 # App configuration
 st.set_page_config(
-    page_title="Hyper-V Cluster Implementation Tool - Bechtle Austria GmbH",
+    page_title="Hyper-V Cluster Implementation Tool",
     page_icon="🖥️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -98,23 +98,24 @@ if 'current_step' not in st.session_state:
 if 'completed_steps' not in st.session_state:
     st.session_state.completed_steps = set()
 
-# Add settings in sidebar
+# Persistenten Dunkelmodus über Session State implementieren
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
+
+# Dark Mode wird ins Burger-Menü verschoben, daher hier keine Controls anzeigen
 with st.sidebar:
-    st.markdown("### Einstellungen")
-    dark_mode = st.toggle("Dunkelmodus", value=False, key="dark_mode")
-    
-    # Hinweis zum Dark Mode
-    if dark_mode:
-        st.info("Dunkelmodus aktiviert. Für optimale Ergebnisse bitte Seite neu laden.")
-        
-        # Apply comprehensive dark mode styling
-        st.markdown("""
-        <style>
-        /* Global Dark Theme */
-        html, body, [class*="css"] {
-            color: #E0E0E0 !important;
-            background-color: #1E1E1E !important;
-        }
+    # Leer lassen, da Einstellungen im Burger-Menü sind
+    pass
+
+# Anwenden des Dark Mode Stylings wenn aktiviert
+if st.session_state.dark_mode:
+    st.markdown("""
+    <style>
+    /* Global Dark Theme */
+    html, body, [class*="css"] {
+        color: #E0E0E0 !important;
+        background-color: #1E1E1E !important;
+    }
         
         .main .block-container {
             background-color: #1E1E1E !important;
@@ -522,7 +523,7 @@ implementation_steps = st.session_state.implementation_steps
 # Sidebar
 with st.sidebar:
     st.title("Hyper-V Cluster Implementation")
-    st.caption("Bechtle Austria GmbH")
+    # Caption entfernt
     
     # Add navigation helper functions to session state for direct access
     if "navigate_to" not in st.session_state:
@@ -883,4 +884,4 @@ elif st.session_state.current_step == 6:
 
 # Footer
 st.markdown("---")
-st.caption("VMM Cluster Implementation Tool • © 2025 Bechtle Austria GmbH • v1.0.0")
+st.caption("VMM Cluster Implementation Tool • © 2025 • v1.0.0")
