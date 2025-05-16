@@ -1064,19 +1064,14 @@ def _render_implementation_checklist():
     
     # Check which steps have been completed
     completed_steps = st.session_state.get("completed_steps", set())
-    total_steps = 10  # Total number of implementation steps
+    total_steps = 5  # Updated total number of implementation steps
     
-    # Create checklist
+    # Create checklist - updated to match the new module structure
     checklist_items = [
         "Hardware Requirements",
         "Software Requirements",
         "Network Configuration",
         "Storage Configuration",
-        "Security Settings",
-        "High Availability",
-        "Backup & Recovery",
-        "Roles & Permissions",
-        "Monitoring",
         "Documentation"
     ]
     
@@ -1166,17 +1161,13 @@ def render_documentation():
     st.markdown("---")
     col1, col2 = st.columns([1, 1])
     
-    # Previous button goes to the previous step, which depends on deployment type
-    prev_step_text = "Previous: High Availability" if deployment_type == "hyperv" else "Previous: Monitoring"
-    prev_step_key = "prev_ha" if deployment_type == "hyperv" else "prev_monitoring"
-    prev_step_num = 7 if deployment_type == "hyperv" else 10
-    
+    # Previous button always goes to Storage Configuration (now the step before Documentation)
     with col1:
-        if st.button(prev_step_text, key=prev_step_key):
-            st.session_state.current_step = prev_step_num
-            st.rerun()
+        # Navigate to storage configuration (index 5)
+        st.button("Previous: Storage Configuration", key="prev_storage", 
+                 on_click=lambda: setattr(st.session_state, "current_step", 5))
     
     with col2:
-        if st.button("Return to Introduction", key="return_intro"):
-            st.session_state.current_step = 0
-            st.rerun()
+        # Navigate to introduction (index 0)
+        st.button("Return to Introduction", key="return_intro", 
+                 on_click=lambda: setattr(st.session_state, "current_step", 0))
